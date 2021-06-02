@@ -1,0 +1,1 @@
+media/audrie8a/Archivos/C/Proyecto1_MIA/\"Archivo Entrada.txt\""
