@@ -133,65 +133,45 @@ void Comprobar(vector<string> Vectro)
     }
 }
 
-void SplitPorEspacios(string Entrada)
-{
-    string palabra = "";
-    bool cadena = false;
-    bool comentario = false;
-    for (auto x : Entrada)
+void SplitFinal(string Entrada){
+    string palabra="";
+    for (int i = 0; i < Entrada.size(); i++)
     {
-        //if (x != '%')
-        //{
-            if (x == '"' && cadena != true) //Entro si x  es "" y si cadena no es verdadera
+        if(Entrada[i]=='"'){
+            do
             {
-                cadena = true;
-                palabra = palabra + x;
+                palabra=palabra+Entrada[i];
+                i++;
+            } while (Entrada[i]!='"');   
+            if(palabra!=""){
+                Comando.push_back(palabra);   
             }
-            else
+            palabra="";    
+            
+        }else if(Entrada[i]=='#'){
+            do
             {
-                if (cadena == false)
-                {
-                    if (x == ' ')
-                    {
-                        if (palabra != "")
-                        {
-                            Comando.push_back(palabra);
-                        }
-                        palabra = "";
-                    }
-                    else
-                    {
-                        palabra = palabra + x;
-                    }
-                }
-                else
-                {
-                    palabra = palabra + x;
-                    if (x == '"')
-                    {
-                        cadena = false;
-                        Comando.push_back(palabra);
-                        palabra = "";
-                    }
-                }
+                palabra=palabra+Entrada[i];
+                i++;
+            } while (i<Entrada.size());
+            if(palabra!=""){
+                Comando.push_back(palabra);
             }
-        //}
-        //else
-        //{
-        //    comentario = true;
-        //}
-    }
-    //if (comentario != true)
-    //{
-        if (palabra != " " && palabra != "")
-        {
-            Comando.push_back(palabra);
+            palabra="";
         }
-
-        execute(Comando);
-        //Comprobar(Comando);
-        Comando.clear();
-    //}
+        else{
+            if(Entrada[i]!=' '){
+                palabra=palabra+Entrada[i];
+            }else{
+                if(palabra!=""){
+                    Comando.push_back(palabra);
+                }
+                palabra="";
+            }
+        }        
+    }
+    execute(Comando);
+    Comando.clear();
 }
 
 //Separa por valores
@@ -201,35 +181,25 @@ void SplitPorComandos(string Entrada)
     bool comentario = false;
     for (auto x : Entrada)
     {
-        //if (x != '#')
-        //{
-            if (x == '=')
-            {
-                if (palabra != "")
-                {
-                    palabra = palabra + " ";
-                }
-            }
-            else
-            {
-                palabra = palabra + x;
-            }
-        //}
-        //else
-        //{
-        //    comentario = true;
-        //    //palabra= palabra+x;
-        //}
-    }
-    //if (comentario != true)
-    //{
-        if (palabra != " " && palabra != "")
+        if (x == '=')
         {
-            palabra = palabra + " ";
+            if (palabra != "")
+            {
+                palabra = palabra + " ";
+            }
         }
+        else
+        {
+            palabra = palabra + x;
+        }
+    }
+    if (palabra != " " && palabra != "")
+    {
+        palabra = palabra + " ";
+    }
 
-        SplitPorEspacios(palabra);
-    //}
+    SplitFinal(palabra);
+    //SplitPorEspacios(palabra);
 }
 
 //Separa por cada salto de línea

@@ -34,64 +34,45 @@ void Comprobar2(vector<string> Vectro)
     }
 }
 
-void SplitPorEspacios2(string Entrada)
-{
-    string palabra = "";
-    bool cadena = false;
-    bool comentario = false;
-    for (auto x : Entrada)
+void SplitFinal2(string Entrada){
+    string palabra="";
+    for (int i = 0; i < Entrada.size(); i++)
     {
-        if (x != '#')
-        {
-            if (x == '"' && cadena != true) //Entro si x  es "" y si cadena no es verdadera
+        if(Entrada[i]=='"'){
+            do
             {
-                cadena = true;
-                palabra = palabra + x;
+                palabra=palabra+Entrada[i];
+                i++;
+            } while (Entrada[i]!='"');   
+            if(palabra!=""){
+                Comando2.push_back(palabra);   
             }
-            else
+            palabra="";    
+            
+        }else if(Entrada[i]=='#'){
+            do
             {
-                if (cadena == false)
-                {
-                    if (x == ' ')
-                    {
-                        if (palabra != "")
-                        {
-                            Comando2.push_back(palabra);
-                        }
-                        palabra = "";
-                    }
-                    else
-                    {
-                        palabra = palabra + x;
-                    }
-                }
-                else
-                {
-                    palabra = palabra + x;
-                    if (x == '"')
-                    {
-                        cadena = false;
-                        Comando2.push_back(palabra);
-                        palabra = "";
-                    }
-                }
+                palabra=palabra+Entrada[i];
+                i++;
+            } while (i<Entrada.size());
+            if(palabra!=""){
+                Comando2.push_back(palabra);
             }
+            palabra="";
         }
-        else
-        {
-            comentario = true;
-        }
+        else{
+            if(Entrada[i]!=' '){
+                palabra=palabra+Entrada[i];
+            }else{
+                if(palabra!=""){
+                    Comando2.push_back(palabra);
+                }
+                palabra="";
+            }
+        }        
     }
-    if (comentario != true)
-    {
-        if (palabra != " " && palabra != "")
-        {
-            Comando2.push_back(palabra);
-        }
-        //Comprobar2(Comando2);
-        Ejecutar(Comando2);
-        Comando2.clear();
-    }
+    Ejecutar(Comando2);
+    Comando2.clear();
 }
 
 void SplitPorComandos2(string Entrada)
@@ -100,34 +81,25 @@ void SplitPorComandos2(string Entrada)
     bool comentario = false;
     for (auto x : Entrada)
     {
-        if (x != '#')
+        if (x == '=')
         {
-            if (x == '=')
+            if (palabra != "")
             {
-                if (palabra != "")
-                {
-                    palabra = palabra + " ";
-                }
-            }
-            else
-            {
-                palabra = palabra + x;
+                palabra = palabra + " ";
             }
         }
         else
         {
-            comentario = true;
+            palabra = palabra + x;
         }
     }
-    if (comentario != true)
-    {
-        if (palabra != " " && palabra != "")
-        {
-            palabra = palabra + " ";
-        }
 
-        SplitPorEspacios2(palabra);
+    if (palabra != " " && palabra != "")
+    {
+        palabra = palabra + " ";
     }
+    SplitFinal2(palabra);
+    //SplitPorEspacios2(palabra);
 }
 void SplitPorLineas2(string Entrada)
 {
