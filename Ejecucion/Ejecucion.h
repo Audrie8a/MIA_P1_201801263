@@ -101,7 +101,10 @@ bool VerificarExistencia(string path)
             }
         }
     }
-    path = aux;
+    if(aux!=""){
+        path = aux;
+    }
+    
     bool existencia = false;
     struct stat buffer;
     int exists = stat(path.c_str(), &buffer);
@@ -260,14 +263,13 @@ void Rmdisk()
             {
                 //Existe el archivo
                 remove(path.c_str());
-                cout << "Disco Eliminado!" << endl; 
-                fclose(arch);               
+                cout << "Disco Eliminado!" << endl;
+                fclose(arch);
             }
             else
             {
-                cout << "Error, archivo no encontrado!" << endl;                
+                cout << "Error, archivo no encontrado!" << endl;
             }
-            
         }
         else
         {
@@ -288,6 +290,173 @@ void pause()
         cout << '\n'
              << "Press the Enter key to continue.";
     } while (cin.get() != '\n');
+}
+
+void Fdisk()
+{
+    bool error=false;
+    int size = 0;
+    string f = "";
+    string u = "";
+    string path = "";
+    string type = "";
+    string operacion = "ninguna";
+    string deleted = "";
+    int add = 0;
+    string name = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+
+            if (cmd == "-size")
+            {
+                indice++;
+                size = stoi(CMD[indice]);
+            }
+            else if (cmd == "-f")
+            {
+                indice++;
+                f = CMD[indice];
+            }
+            else if (cmd == "-u")
+            {
+                indice++;
+                u = CMD[indice];
+            }
+            else if (cmd == "-path")
+            {
+                indice++;
+                path = ObtenerPaths(CMD[indice]);
+            }
+            else if (cmd == "-type")
+            {
+                indice++;
+                type = CMD[indice];
+            }
+            else if (cmd == "-delete")
+            {
+                indice++;
+                if (add == 0)
+                {
+                    deleted = CMD[indice];
+                    operacion = "delete";
+                }
+                else
+                {
+                    cout << "Ya se encontró el parametro Add anteriormente";
+                    indice++;
+                }
+            }
+            else if (cmd == "-name")
+            {
+                indice++;
+                name = CMD[indice];
+            }
+            else if (cmd == "-add")
+            {
+                indice++;
+                if (deleted == "")
+                {
+                    add = stoi(CMD[indice]);
+                    operacion = "add";
+                }
+                else
+                {
+                    cout << "Ya se encontró el parametro Delete anteriormente";
+                    indice++;
+                }
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+                error = true;
+                break;
+            }
+            indice++;
+        }
+
+        if (!error)
+        {
+            if (path != "" && name != "")
+            {
+                if (VerificarExistencia(path))
+                {
+                    if (u == "")
+                    {
+                        u = "k";
+                    }
+                    if (type == "")
+                    {
+                        type = "p";
+                    }
+                    if (f == "")
+                    {
+                        f = "w";
+                    }
+                    transform(f.begin(), f.end(), f.begin(), ::tolower);
+                    if (f == "bf")
+                    {
+                        f = "b";
+                    }
+                    else if (f == "ff")
+                    {
+                        f = "f";
+                    }
+                    else if (f == "wf")
+                    {
+                        f = "w";
+                    }
+                    transform(type.begin(), type.end(), type.begin(), ::tolower);
+                    transform(u.begin(), u.end(), u.begin(), ::tolower);
+                    name = ObtenerPaths(name);
+                    path = ObtenerPaths(path);
+                    if (operacion=="add")
+                    {
+                        fdisk(size,u,path,type,f,name,add,"",operacion);
+                    }
+                    else if (operacion=="delete")
+                    {
+                       
+                        fdisk(size,u,path,type,f,name,0,deleted,operacion);
+                    }
+                    else
+                    {
+                        if (size != 0)
+                        {
+                            fdisk(size,u,path,type,f,name,0,"",operacion);
+                        }
+                        else
+                        {
+                            cout << "Error, no se ha encontrado el disco en el path dado" << endl;
+                        }
+                    }
+                }
+                else
+                {
+                    cout << "Error, no se ha encontrado el disco en el path dado" << endl;
+                }
+            }
+            else
+            {
+                cout << "Error, no cuenta con atributos esenciales para crear Particion" << endl;
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear la particion" << endl;
+    }
 }
 
 //Aquí va la el listado de comandos que se pueden ejecutar
@@ -312,7 +481,7 @@ void Ejecutar(vector<string> vector)
     else if (cmd == "fdisk")
     {
         indice++;
-        //Fdisk();
+        Fdisk();
         indice = 0;
     }
     else if (cmd == "rep")
