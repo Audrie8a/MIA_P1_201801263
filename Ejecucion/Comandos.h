@@ -11,17 +11,15 @@ using namespace std;
 
 #ifndef COMANDO_H
 #define COMANDO_H
-vector<int> ID_Disco; //Signature
+vector<int> ID_Disco;         //Signature
 vector<string> ID_Disco_Path; // Signature- path
 
-int ContadorPrimaria=0;
-int ContadorExtendida=0;
+int ContadorPrimaria = 0;
+int ContadorExtendida = 0;
 
 vector<string> ListaEspaciosLibres; //start- fin
 vector<string> ParticionMontada;    // id- nombre- path
 vector<string> listParticionLogica; //nombre - path
-
-
 
 struct MBR *mbr = new struct MBR;
 struct EBR *ebr = new struct EBR;
@@ -49,9 +47,149 @@ struct NombresParticion
     string type_Particion;
 };
 
+struct Contadores
+{
+    int ContadorP;
+    int ContadorE;
+    int signature;
+};
+
+vector<Contadores> lstContadores;
 vector<Espacio> lstEspacios;
 vector<NombresParticion> ID_ParticionDisco; //Signature Disco - NombreParticion
 
+//------------------------------------------------------------------GRAFICAS-------------------------------------------------------------------
+void ReporteMBR()
+{
+    string Imprimir = "digraph G {";
+
+    Imprimir += "\tnodo[shape=plaintext label=<";
+    Imprimir += "\t \t    <table>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Nombre</b></td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Valor</b></td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_tamano</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIZE) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_fecha_creacion</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->FECHA) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_disk_signature</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIGNATURE) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t            <td colspan=\"4\">Disk_fit</td>";
+    Imprimir += "\t \t \t \t            <td colspan=\"4\">" + string(mbr->FIT) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        ";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].status) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].type) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].fit) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].start) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].size) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_1</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].nombre) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        ";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].status) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].type) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].fit) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].start) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].size) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_2</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].nombre) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        ";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].status) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].type) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].fit) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].start) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].size) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_3</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].nombre) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        ";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].status) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].type) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].fit) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].start) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].size) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t        <tr>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_4</td>";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].nombre) + "</td>";
+    Imprimir += "\t \t \t        </tr>";
+    Imprimir += "\t \t \t    ";
+    Imprimir += "\t \t    </table>";
+    Imprimir += "\t>];";
+    Imprimir += "}";
+}
 
 //OBTIENE UN NÚMERO RANDOOM DEL 1 AL 100, DIFERENTE A OTROS GENERADOS-------------------Usados en Mkdisk
 int SignatureDisco()
@@ -124,9 +262,7 @@ struct MBR *EscribirMBR(char *fit, int size)
     return newMBR;
 }
 
-
-
-//VERIFICA QUE EL NOMBRE DE LA PARTCION NO SE REPITA 
+//VERIFICA QUE EL NOMBRE DE LA PARTCION NO SE REPITA
 //-- DEVUELVE VERDADERO EN CASO SE REPITE EL NOMBRE-------------------------------------Usados en Fdisk
 bool VerificarNombre(string name)
 {
@@ -136,15 +272,95 @@ bool VerificarNombre(string name)
     {
         for (struct NombresParticion x : ID_ParticionDisco)
         {
-            if (x.Nombre_Particion==name && x.signature==mbr->SIGNATURE){
+            if (x.Nombre_Particion == name && x.signature == mbr->SIGNATURE)
+            {
                 //Se repite
-                verificacion=true;
+                verificacion = true;
                 break;
             }
         }
-    }   
+    }
 
     return verificacion;
+}
+
+//ACTUALIZA MBR EN EL DISCO
+void ActualizarMBR(string path)
+{
+    FILE *fichero;
+    fichero = fopen(path.c_str(), "r+b");
+    fseek(fichero, 0, 0);
+    fwrite(mbr, sizeof(MBR), 1, fichero);
+    fclose(fichero);
+    mbr = ObtenerMBR(path);
+}
+
+void ActualizarContadores(int opcion)
+{
+    if (opcion == 1)    //Actualiza los contadores
+    {
+        ContadorPrimaria=0;
+        ContadorExtendida=0;
+        for (struct Contadores x : lstContadores)
+        {
+            if (x.signature == mbr->SIGNATURE)
+            {
+                ContadorPrimaria = x.ContadorP;
+                ContadorExtendida = x.ContadorE;
+                break;
+            }
+        }
+
+    }else{  //Actualiza los contadores en la lista
+        int cont=0;
+        for (struct Contadores x : lstContadores)
+        {
+            if (x.signature == mbr->SIGNATURE)
+            {
+                lstContadores[cont].ContadorE=ContadorExtendida;
+                lstContadores[cont].ContadorP=ContadorPrimaria;
+                cont++;
+                break;
+            }
+        }
+
+        //Si no encunetra los contadores pretenecientes al disco, los agrega
+        if(cont==0){
+            struct Contadores Contando;
+            Contando.ContadorE=ContadorExtendida;
+            Contando.ContadorP=ContadorPrimaria;
+            Contando.signature= mbr->SIGNATURE;
+            lstContadores.push_back(Contando);
+        }
+    }
+}
+struct EBR *ObtenerEBR(string path, int posicion)
+{
+    FILE *arch;
+    arch = fopen(path.c_str(), "rb");
+    struct EBR *newEBR = new struct EBR;
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, posicion, SEEK_SET); //Seek_set o "0", es desede el inicio del archivo
+    fread(newEBR, sizeof(EBR), 1, arch);
+    //cout<<sizeof(EBR)<<endl;
+    //cout<<newEBR->status<<endl;
+    //cout<<newEBR->fit<<endl;
+    //cout<<newEBR->start<<endl;
+    //cout<<newEBR->next<<endl;
+    //cout<<newEBR->nombre<<endl;
+    fclose(arch);
+
+    return newEBR;
+}
+
+void EscribirEBR(string path, int start)
+{
+    FILE *fichero;
+    fichero = fopen(path.c_str(), "r+b");
+    fseek(fichero, start, 0);
+    fwrite(ebr, sizeof(EBR), 1, fichero);
+    fclose(fichero);
+    mbr = ObtenerMBR(path);
 }
 
 //ORDENAR LAS PARTICIONES GUARDADAS EN EL MBR
@@ -157,7 +373,7 @@ void OrdenarParticiones(string path)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (mbr->PARTICION[j].start < mbr->PARTICION[j + 1].start)
+            if (mbr->PARTICION[j].start > mbr->PARTICION[j + 1].start)
             {
                 particionTemp = mbr->PARTICION[j];
                 mbr->PARTICION[j] = mbr->PARTICION[j + 1];
@@ -167,43 +383,295 @@ void OrdenarParticiones(string path)
     }
 
     //Guardar cambios en el archivo binario (Reescribir MBR)
-    FILE *fichero;
-    fichero = fopen(path.c_str(), "r+b");
-    fseek(fichero, 0, 0);
-    fwrite(mbr, sizeof(MBR), 1, fichero);
-    fclose(fichero);
+    ActualizarMBR(path);
 }
 
 //OBTIENE LOS ESPACIOS DISPONIBLES PARA PARTICIONES EXTENDIDAS Y PRIMARIAS
-void CalcularEspaciosLibres()
+void CalcularEspaciosLibres(string path)
 {
     OrdenarParticiones(path);
     lstEspacios.clear();
     Espacio aux;
-    aux.Inicio=sizeof(MBR)+1;
-    for(struct partition p: mbr->PARTICION){
-        if(p.start==aux.Inicio){
-            aux.Inicio=p.start+p.size;
-        }else{
-            Espacio libre;
-            libre.Inicio=aux.Inicio;
-            libre.Fin=p.start-1;
-            libre.Tama=(libre.Fin-libre.Inicio)+1;
-            lstEspacios.push_back(libre);
+    aux.Inicio = sizeof(MBR) + 1;
+    int contador = 0;
+    for (struct partition p : mbr->PARTICION)
+    {
+        if (p.size != 0)
+        {
+            if (p.start == aux.Inicio)
+            {
+                aux.Inicio = p.start + p.size;
+            }
+            else
+            {
+                Espacio libre;
+                libre.Inicio = aux.Inicio;
+                libre.Fin = p.start - 1;
+                libre.Tama = (libre.Fin - libre.Inicio) + 1;
+                lstEspacios.push_back(libre);
 
-            aux.Inicio=p.start+p.size;
-        }    
+                aux.Inicio = p.start + p.size;
+            }
+        }
+        else
+        {
+            contador++;
+        }
     }
 
+    //En caso no se hayan ingresado particiones aún
+    if (contador == 4)
+    {
+        Espacio libre;
+        libre.Inicio = sizeof(MBR) + 1;
+        libre.Fin = mbr->SIZE - 1;
+        libre.Tama = libre.Fin - libre.Inicio;
+        lstEspacios.push_back(libre);
+    }
+    else if (aux.Inicio != mbr->SIZE - 1)
+    { //En caso la última posición esté libre
+        Espacio libre;
+        libre.Inicio = aux.Inicio;
+        libre.Fin = mbr->SIZE - 1;
+        libre.Tama = libre.Fin - libre.Inicio;
+        lstEspacios.push_back(libre);
+    }
+}
 
+//AJUSTES PARA GUARDAR LAS PARTICIONES
+void PrimerAjuste(int size, string name, string type, string path)
+{
+    if (type == "p" || type == "e")
+    { //Primarias y Extendidas
+
+        if ((type == "e" && ContadorExtendida == 0) || (type == "p" && ContadorPrimaria != 3))
+        {
+
+            CalcularEspaciosLibres(path);
+            if (lstEspacios.size() != 0)
+            {
+                //CODIGO AJUSTE
+
+                struct partition Particion;
+                int contador = 0;
+
+                for (struct Espacio x : lstEspacios)
+                {
+                    if (x.Tama >= size)
+                    {
+                        strcpy(Particion.status, "u");
+                        strcpy(Particion.type, type.c_str());
+                        strcpy(Particion.fit, "f");
+                        Particion.start = x.Inicio;
+                        Particion.size = size;
+                        strcpy(Particion.nombre, name.c_str());
+                        contador++;
+                        break;
+                    }
+                }
+
+                if (contador != 0)
+                {
+                    //Guarda la partición en el mbr y se escribe en el archivo
+                    mbr->PARTICION[0] = Particion;
+                    ActualizarMBR(path);
+
+                    //En caso de ser una partición extendida escribir EBR
+                    if (type == "e")
+                    {
+                        //ESCRIBIR EBR
+                        strcpy(ebr->status, "u");
+                        strcpy(ebr->fit, "w");
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->next = -1;
+                        strcpy(ebr->nombre, "xx");
+
+                        EscribirEBR(path, mbr->PARTICION[0].start);
+                        ContadorExtendida++;
+                    }
+                    else
+                    {
+                        ContadorPrimaria++;
+                    }
+                }
+                else
+                {
+                    cout << "Error, los espacios disponibles no cumplen con el tamaño que requiere la particion!" << endl;
+                }
+            }
+            else
+            {
+                cout << "Error, No se ha encontrado el espacio suficiente para crear esta particion!" << endl;
+            }
+        }
+        else
+        {
+            cout << "Error, no cumple con la cantidad permitida de particiones extendidas o primarias!" << endl;
+        }
+    }
+    else if (type == "l")
+    { //Logicas
+    }
+    else
+    {
+        cout << "Error, no se ha reconocido el tipo de particion!" << endl;
+    }
+}
+
+void MejorAjuste(int size, string name, string type, string path)
+{
+    if (type == "p" || type == "e")
+    { //Primarias y Extendidas
+
+        if ((type == "e" && ContadorExtendida == 0) || (type == "p" && ContadorPrimaria != 3))
+        {
+
+            CalcularEspaciosLibres(path);
+            if (lstEspacios.size() != 0)
+            {
+                //CODIGO AJUSTE
+                struct Espacio Mejor;
+                struct partition Particion;
+                Mejor.Tama = mbr->SIZE - 1;
+
+                for (struct Espacio x : lstEspacios)
+                {
+                    if (x.Tama <= Mejor.Tama && x.Tama >= size)
+                    {
+                        Mejor = x;
+                    }
+                }
+                if (Mejor.Tama != mbr->SIZE - 1)
+                {
+                    strcpy(Particion.status, "u");
+                    strcpy(Particion.type, type.c_str());
+                    strcpy(Particion.fit, "b");
+                    Particion.start = Mejor.Inicio;
+                    Particion.size = size;
+                    strcpy(Particion.nombre, name.c_str());
+
+                    if (type == "e")
+                    {
+                        //ESCRIBIR EBR
+                        strcpy(ebr->status, "u");
+                        strcpy(ebr->fit, "w");
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->next = -1;
+                        strcpy(ebr->nombre, "xx");
+
+                        EscribirEBR(path, mbr->PARTICION[0].start);
+                        ContadorExtendida++;
+                    }
+                    else
+                    {
+                        ContadorPrimaria++;
+                    }
+                }
+                else
+                {
+                    cout << "Error, los espacios disponibles no cumplen con el tamaño que requiere la particion!" << endl;
+                }
+            }
+            else
+            {
+                cout << "Error, No se ha encontrado el espacio suficiente para crear esta particion!" << endl;
+            }
+        }
+        else
+        {
+            cout << "Error, no cumple con la cantidad permitida de particiones extendidas o primarias!" << endl;
+        }
+    }
+    else if (type == "l")
+    { //Logicas
+    }
+    else
+    {
+        cout << "Error, no se ha reconocido el tipo de particion!" << endl;
+    }
+}
+
+void PeorAjuste(int size, string name, string type, string path)
+{
+    if (type == "p" || type == "e")
+    { //Primarias y Extendidas
+
+        if ((type == "e" && ContadorExtendida == 0) || (type == "p" && ContadorPrimaria != 3))
+        {
+
+            CalcularEspaciosLibres(path);
+            if (lstEspacios.size() != 0)
+            {
+                //CODIGO AJUSTE
+                struct Espacio Peor;
+                struct partition Particion;
+                Peor.Tama = 0;
+
+                for (struct Espacio x : lstEspacios)
+                {
+                    if (x.Tama >= Peor.Tama && x.Tama >= size)
+                    {
+                        Peor = x;
+                    }
+                }
+
+                if (Peor.Tama != 0)
+                {
+                    strcpy(Particion.status, "u");
+                    strcpy(Particion.type, type.c_str());
+                    strcpy(Particion.fit, "b");
+                    Particion.start = Peor.Inicio;
+                    Particion.size = size;
+                    strcpy(Particion.nombre, name.c_str());
+
+                    if (type == "e")
+                    {
+                        //ESCRIBIR EBR
+                        strcpy(ebr->status, "u");
+                        strcpy(ebr->fit, "w");
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->next = -1;
+                        strcpy(ebr->nombre, "xx");
+
+                        EscribirEBR(path, mbr->PARTICION[0].start);
+                        ContadorExtendida++;
+                    }
+                    else
+                    {
+                        ContadorPrimaria++;
+                    }
+                }
+                else
+                {
+                    cout << "Error, los espacios disponibles no cumplen con el tamaño que requiere la particion!" << endl;
+                }
+            }
+            else
+            {
+                cout << "Error, No se ha encontrado el espacio suficiente para crear esta particion!" << endl;
+            }
+        }
+        else
+        {
+            cout << "Error, no cumple con la cantidad permitida de particiones extendidas o primarias!" << endl;
+        }
+    }
+    else if (type == "l")
+    { //Logicas
+    }
+    else
+    {
+        cout << "Error, no se ha reconocido el tipo de particion!" << endl;
+    }
 }
 
 void CrearParticion(int size, string f, string name, string type, string path)
 {
     if (!VerificarNombre(name))
-    {       
+    {
         if (f == "f")
         { //Primer Ajuste
+            PrimerAjuste(size, name, type, path);
         }
         else if (f == "b")
         { //Mejor Ajuste
@@ -211,17 +679,46 @@ void CrearParticion(int size, string f, string name, string type, string path)
         else if (f == "w")
         { //Peor Ajuste
         }
-    }else{
-        cout<<"Error, el nombre de la partición ya existe en este disco!"<<endl;
+    }
+    else
+    {
+        cout << "Error, el nombre de la partición ya existe en este disco!" << endl;
     }
 }
 
+void Prueba_LlenarParticiones(string path)
+{
+    PrimerAjuste(200, "Prueba", "p", path);
+    mbr->PARTICION[0].size = 300;
+    mbr->PARTICION[0].start = 153;
+    strcpy(mbr->PARTICION[0].type, "p");
+
+    //PrimerAjuste(200,"Prueba","p", path);
+    //mbr->PARTICION[1].size = 100;
+    //mbr->PARTICION[1].start = 353;
+    //strcpy(mbr->PARTICION[1].type, "p");
+
+    PrimerAjuste(200, "Prueba", "p", path);
+    mbr->PARTICION[0].size = 100;
+    mbr->PARTICION[0].start = 453;
+    strcpy(mbr->PARTICION[2].type, "p");
+
+    PrimerAjuste(200, "Prueba", "e", path);
+    mbr->PARTICION[0].size = 2518;
+    mbr->PARTICION[0].start = 553;
+    strcpy(mbr->PARTICION[3].type, "e");
+
+    PrimerAjuste(200, "Prueba", "p", path);
+
+    //ContadorPrimaria=2;
+    //ContadorExtendida=1;
+}
 //-----------------------------------------------COMANDOS-----------------------------------------------------------------
 
 //CREAR PARTICIONES
 void fdisk(int size, string u, string path, string type, string f, string name, int add, string deleted, string operacion)
 {
-    mbr = ObtenerMBR(path);
+    mbr = ObtenerMBR(path);    
     //Tamaño
     if (u == "m")
     {
@@ -238,7 +735,10 @@ void fdisk(int size, string u, string path, string type, string f, string name, 
     if (operacion == "ninguna")
     {
         //Crear particion
-        CrearParticion(size, f, name, type, path);
+        Prueba_LlenarParticiones(path);
+        ActualizarContadores(1);
+        //CrearParticion(size, f, name, type, path);
+        ActualizarContadores(2);
     }
     else if (operacion == "add")
     {
