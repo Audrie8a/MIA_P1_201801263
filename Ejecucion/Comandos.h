@@ -38,6 +38,7 @@ struct Espacio
     int Inicio;
     int Fin;
     int Tama;
+    int InicioAnterior;
 };
 
 struct NombresParticion
@@ -297,10 +298,10 @@ void ActualizarMBR(string path)
 
 void ActualizarContadores(int opcion)
 {
-    if (opcion == 1)    //Actualiza los contadores
+    if (opcion == 1) //Actualiza los contadores
     {
-        ContadorPrimaria=0;
-        ContadorExtendida=0;
+        ContadorPrimaria = 0;
+        ContadorExtendida = 0;
         for (struct Contadores x : lstContadores)
         {
             if (x.signature == mbr->SIGNATURE)
@@ -310,30 +311,33 @@ void ActualizarContadores(int opcion)
                 break;
             }
         }
-
-    }else{  //Actualiza los contadores en la lista
-        int cont=0;
+    }
+    else
+    { //Actualiza los contadores en la lista
+        int cont = 0;
         for (struct Contadores x : lstContadores)
         {
             if (x.signature == mbr->SIGNATURE)
             {
-                lstContadores[cont].ContadorE=ContadorExtendida;
-                lstContadores[cont].ContadorP=ContadorPrimaria;
+                lstContadores[cont].ContadorE = ContadorExtendida;
+                lstContadores[cont].ContadorP = ContadorPrimaria;
                 cont++;
                 break;
             }
         }
 
         //Si no encunetra los contadores pretenecientes al disco, los agrega
-        if(cont==0){
+        if (cont == 0)
+        {
             struct Contadores Contando;
-            Contando.ContadorE=ContadorExtendida;
-            Contando.ContadorP=ContadorPrimaria;
-            Contando.signature= mbr->SIGNATURE;
+            Contando.ContadorE = ContadorExtendida;
+            Contando.ContadorP = ContadorPrimaria;
+            Contando.signature = mbr->SIGNATURE;
             lstContadores.push_back(Contando);
         }
     }
 }
+
 struct EBR *ObtenerEBR(string path, int posicion)
 {
     FILE *arch;
@@ -433,8 +437,50 @@ void CalcularEspaciosLibres(string path)
         Espacio libre;
         libre.Inicio = aux.Inicio;
         libre.Fin = mbr->SIZE - 1;
-        libre.Tama = libre.Fin - libre.Inicio;
+        libre.Tama = libre.Fin - libre.Inicio+1;
         lstEspacios.push_back(libre);
+    }
+}
+
+void CalcularEspaciosLogicas(int numParticion, string path)
+{
+    lstEspacios.clear();
+    struct partition Extendida= mbr->PARTICION[numParticion];
+    
+    ebr=ObtenerEBR(path,Extendida.start);
+    
+    if(ebr->nombre=="xx" && ebr->next==-1){//No existen particiones lógicas aún
+        Espacio libre;
+        libre.Inicio=ebr->start+sizeof(EBR); //Inicio donde debería iniciar la pratición lógica después del ebr
+        libre.Fin=mbr->PARTICION[numParticion].start+mbr->PARTICION[numParticion].size-1;
+        libre.Tama=libre.Fin-libre.Inicio+1;
+        libre.InicioAnterior=-1; //Significa que es el primero
+        lstEspacios.push_back(libre);
+    }else{  //Ya existen particiones lógicas
+
+        while(ebr->next!=-1){
+            int SizeLogica= ebr->start+ebr->size;
+            if(SizeLogica!=ebr->next){ //Significa que queda un espacio de por medio entre el final de la lógica y el inicio de la otra lógica
+                Espacio libre;
+                libre.Inicio=SizeLogica;
+                libre.Fin=ebr->next-1;
+                libre.Tama=libre.Fin-libre.Inicio+1;
+                libre.InicioAnterior=ebr->start;
+                lstEspacios.push_back(libre);
+            }
+            ebr=ObtenerEBR(path,ebr->next);
+           
+        }
+        int ultimaPosicion=ebr->start+ebr->size-1;
+        int limiteExtendida=Extendida.start+Extendida.size-1;
+        if(ultimaPosicion!=limiteExtendida){
+            Espacio libre;
+            libre.Inicio=ultimaPosicion+1;
+            libre.Fin=limiteExtendida;
+            libre.Tama=libre.Fin-libre.Inicio+1;
+            libre.InicioAnterior=ebr->start;
+            lstEspacios.push_back(libre);
+        }
     }
 }
 
@@ -482,7 +528,7 @@ void PrimerAjuste(int size, string name, string type, string path)
                         //ESCRIBIR EBR
                         strcpy(ebr->status, "u");
                         strcpy(ebr->fit, "w");
-                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR);
                         ebr->next = -1;
                         strcpy(ebr->nombre, "xx");
 
@@ -555,7 +601,7 @@ void MejorAjuste(int size, string name, string type, string path)
                         //ESCRIBIR EBR
                         strcpy(ebr->status, "u");
                         strcpy(ebr->fit, "w");
-                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR);
                         ebr->next = -1;
                         strcpy(ebr->nombre, "xx");
 
@@ -629,7 +675,7 @@ void PeorAjuste(int size, string name, string type, string path)
                         //ESCRIBIR EBR
                         strcpy(ebr->status, "u");
                         strcpy(ebr->fit, "w");
-                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR) + 1;
+                        ebr->start = mbr->PARTICION[0].start + sizeof(EBR);
                         ebr->next = -1;
                         strcpy(ebr->nombre, "xx");
 
@@ -658,6 +704,26 @@ void PeorAjuste(int size, string name, string type, string path)
     }
     else if (type == "l")
     { //Logicas
+        bool extendida = false;
+        int cont=0;
+        for (struct partition p : mbr->PARTICION)
+        {
+            if (p.type == "e")
+            {
+                extendida = true;
+                CalcularEspaciosLogicas(cont, path);
+                if (lstEspacios.size() != 0)
+                {
+
+                }
+                break;
+            }           
+            cont++;
+        }
+        if (!extendida)
+        {
+            cout << "Error, no se puede crear ninguna partición lógica sin que exista una partición extendida!" << endl;
+        }
     }
     else
     {
@@ -675,9 +741,11 @@ void CrearParticion(int size, string f, string name, string type, string path)
         }
         else if (f == "b")
         { //Mejor Ajuste
+            MejorAjuste(size, name, type, path);
         }
         else if (f == "w")
         { //Peor Ajuste
+            PeorAjuste(size, name, type, path);
         }
     }
     else
@@ -718,7 +786,7 @@ void Prueba_LlenarParticiones(string path)
 //CREAR PARTICIONES
 void fdisk(int size, string u, string path, string type, string f, string name, int add, string deleted, string operacion)
 {
-    mbr = ObtenerMBR(path);    
+    mbr = ObtenerMBR(path);
     //Tamaño
     if (u == "m")
     {
@@ -735,9 +803,9 @@ void fdisk(int size, string u, string path, string type, string f, string name, 
     if (operacion == "ninguna")
     {
         //Crear particion
-        Prueba_LlenarParticiones(path);
+        //Prueba_LlenarParticiones(path);
         ActualizarContadores(1);
-        //CrearParticion(size, f, name, type, path);
+        CrearParticion(size, f, name, type, path);
         ActualizarContadores(2);
     }
     else if (operacion == "add")
