@@ -6,7 +6,8 @@
 struct MBR
 {    
     int SIZE;
-    char FECHA [25];
+    //char FECHA [25];
+    time_t FECHA;
     int SIGNATURE;  //numero randum ID disco
     char FIT[1];
     struct partition PARTICION[4];

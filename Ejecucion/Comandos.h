@@ -11,15 +11,10 @@ using namespace std;
 
 #ifndef COMANDO_H
 #define COMANDO_H
-vector<int> ID_Disco;         //Signature
-vector<string> ID_Disco_Path; // Signature- path
+vector<int> ID_Disco; //Signature
 
 int ContadorPrimaria = 0;
 int ContadorExtendida = 0;
-
-vector<string> ListaEspaciosLibres; //start- fin
-vector<string> ParticionMontada;    // id- nombre- path
-vector<string> listParticionLogica; //nombre - path
 
 struct MBR *mbr = new struct MBR;
 struct EBR *ebr = new struct EBR;
@@ -32,6 +27,165 @@ public:
     }
     ~Comando(){};
 };
+
+//CREAR ESTRUCTURA NODO
+struct nodo
+{
+    int signature;
+    string name;
+    string id;
+    struct nodo *sig;
+};
+
+typedef struct nodo *TLista;
+
+TLista listaMount = NULL;
+
+void insertarFinal(TLista &lista, int signature, string name, string id)
+{
+    TLista t, q = new (struct nodo);
+    q->signature = signature;
+    q->name = name;
+    q->id = id;
+    q->sig = nullptr;
+
+    if (lista == nullptr)
+    {
+        lista = q;
+    }
+    else
+    {
+        t = lista;
+        while (t->sig != nullptr)
+        {
+            t = t->sig;
+        }
+        t->sig = q;
+    }
+    cout<<"Particion Montada!"<<endl;
+}
+
+void eliminarElemento(TLista &lista, string id)
+{
+    TLista p, ant;
+    p = lista;
+
+    if (lista != nullptr)
+    {
+        while (p != nullptr)
+        {
+            if (p->id == id)
+            {
+                if (p == lista)
+                {
+                    lista = lista->sig;
+                }
+                else
+                {
+                    ant->sig = p->sig;
+                }
+                delete (p);
+                return;
+            }
+            ant = p;
+            p = p->sig;
+        }
+    }
+    else
+    {
+        cout << "Aún no existen Particiones Montadas!" << endl;
+    }
+}
+
+TLista ObtenerUltimoNodo(TLista lista)
+{
+    TLista q = lista;
+
+    while (q != nullptr)
+    {
+        q = q->sig;
+    }
+
+    return q;
+}
+
+bool buscarElemento(TLista lista, string id)
+{
+    bool existencia = false;
+
+    TLista q = lista;
+    int i = 1;
+    while (q != nullptr)
+    {
+        if (q->id == id)
+        {
+            existencia = true;
+            break;
+        }
+        q = q->sig;
+        i++;
+    }
+    return existencia;
+}
+
+TLista ParticionesMontadas_Disco(TLista lista, int signature)
+{
+    int existencia = 0;
+    TLista aux;
+    TLista q = lista;
+    while (q != nullptr)
+    {
+        if (q->signature = signature)
+        {
+            existencia++;
+            aux = q;
+            aux->signature = existencia; //Se guarda en signature el número de partición montada que es
+        }
+        q = q->sig;
+    }
+    return aux;
+}
+
+string GenerarID(int signature, string name)
+{
+    string abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string udt = "1234567890";
+    string id = "63";
+    TLista aux = ParticionesMontadas_Disco(listaMount, signature);
+    //Numero de particiones Montadas en el disco
+    int contador = aux->signature;
+    if (contador == 0)
+    { //No se ha montado ninguna partición de este disco
+        aux = ObtenerUltimoNodo(listaMount);
+        if (aux->sig != nullptr) //si la lista no está vacía
+        {
+            string auxNum = "";
+            for (int i = 2; i < aux->id.size() - 1; i++)
+            {
+                auxNum += aux->id[i];
+            }
+            //Se asigna el siguiente número 
+            int num=atoi(auxNum.c_str())+1;
+            auxNum=to_string(num);
+            id+=auxNum+"A";
+        }
+        else //Si la lista está vacía
+        {
+            id += "1A";
+        }
+    }
+    else
+    {
+        string auxNum = "";
+        for (int i = 2; i < aux->id.size() - 1; i++)
+        {
+            auxNum += aux->id[i];
+        }
+        id += auxNum + abc[contador - 1];
+    }
+
+    return id;
+}
 
 struct Espacio
 {
@@ -76,7 +230,12 @@ void ReporteMBR()
     Imprimir += "\t \t \t        </tr>";
     Imprimir += "\t \t \t        <tr>";
     Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_fecha_creacion</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->FECHA) + "</td>";
+    //Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->FECHA) + "</td>";
+    char fecha[25];
+    time_t current_time = mbr->FECHA;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(fecha) + "</td>";
     Imprimir += "\t \t \t        </tr>";
     Imprimir += "\t \t \t        <tr>";
     Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_disk_signature</td>";
@@ -252,9 +411,12 @@ struct MBR *EscribirMBR(char *fit, int size)
     char fecha[25]; //ctime devuelve 26 caracteres pero tambien se podría usar un puntero de char
     time_t current_time;
     current_time = time(NULL);
-    ctime(&current_time);
-    strcpy(fecha, ctime(&current_time));
-    strcpy(newMBR->FECHA, fecha);
+
+    newMBR->FECHA = current_time;
+
+    //ctime(&current_time);
+    //strcpy(fecha, ctime(&current_time));
+    //strcpy(newMBR->FECHA, fecha);
     //Particiones
     newMBR->PARTICION[0] = parte[0];
     newMBR->PARTICION[1] = parte[0];
@@ -769,6 +931,12 @@ void MejorAjuste(int size, string name, string type, string path)
                             ebr->next = -1;
                             EscribirEBR(path, Mejor.Inicio);
                         }
+                        NombresParticion nombre;
+                        nombre.Nombre_Particion = name;
+                        nombre.signature = mbr->SIGNATURE;
+                        nombre.type_Particion = type;
+                        ID_ParticionDisco.push_back(nombre);
+                        cout << "Particion Creada!" << endl;
                     }
                     else
                     {
@@ -779,12 +947,7 @@ void MejorAjuste(int size, string name, string type, string path)
                 {
                     cout << "Error, No se ha encontrado el espacio suficiente para crear esta particion!" << endl;
                 }
-                NombresParticion nombre;
-                nombre.Nombre_Particion = name;
-                nombre.signature = mbr->SIGNATURE;
-                nombre.type_Particion = type;
-                ID_ParticionDisco.push_back(nombre);
-                cout << "Particion Creada!" << endl;
+
                 break;
             }
             cont++;
@@ -925,6 +1088,12 @@ void PeorAjuste(int size, string name, string type, string path)
                             ebr->next = -1;
                             EscribirEBR(path, Peor.Inicio);
                         }
+                        NombresParticion nombre;
+                        nombre.Nombre_Particion = name;
+                        nombre.signature = mbr->SIGNATURE;
+                        nombre.type_Particion = type;
+                        ID_ParticionDisco.push_back(nombre);
+                        cout << "Particion Creada!" << endl;
                     }
                     else
                     {
@@ -935,12 +1104,6 @@ void PeorAjuste(int size, string name, string type, string path)
                 {
                     cout << "Error, No se ha encontrado el espacio suficiente para crear esta particion!" << endl;
                 }
-                NombresParticion nombre;
-                nombre.Nombre_Particion = name;
-                nombre.signature = mbr->SIGNATURE;
-                nombre.type_Particion = type;
-                ID_ParticionDisco.push_back(nombre);
-                cout << "Particion Creada!" << endl;
                 break;
             }
             cont++;
@@ -956,7 +1119,7 @@ void PeorAjuste(int size, string name, string type, string path)
     }
 }
 
-void CrearParticion(int size, string f, string name, string type, string path)
+void CrearParticion(int size, string f, string name, string type, string path) //----fkdisk crear parcion------
 {
     if (!VerificarNombre(name))
     {
@@ -976,6 +1139,242 @@ void CrearParticion(int size, string f, string name, string type, string path)
     else
     {
         cout << "Error, el nombre de la partición ya existe en este disco!" << endl;
+    }
+}
+
+void Fast(string name, string path)
+{
+    int match = 0;
+    for (struct NombresParticion x : ID_ParticionDisco)
+    {
+        if (x.Nombre_Particion == name && x.signature == mbr->SIGNATURE)
+        {
+            if (x.type_Particion == "p" || x.type_Particion == "e")
+            {
+                int cont = 0;
+
+                for (struct partition p : mbr->PARTICION)
+                {
+                    string nombre = p.nombre;
+                    if (nombre == name)
+                    {
+
+                        strcpy(mbr->PARTICION[cont].fit, "");
+                        strcpy(mbr->PARTICION[cont].nombre, "");
+                        strcpy(mbr->PARTICION[cont].type, "");
+                        mbr->PARTICION[cont].size = 0;
+                        mbr->PARTICION[cont].start = 0;
+                        strcpy(mbr->PARTICION[cont].status, "");
+
+                        ActualizarMBR(path);
+
+                        string fit = p.fit;
+                        if (fit == "e")
+                        {
+                            ContadorExtendida--;
+                        }
+                        else if (fit == "p")
+                        {
+                            ContadorPrimaria--;
+                        }
+                        cout << "Particion Eliminada!" << endl;
+                        break;
+                    }
+                    cont++;
+                }
+            }
+            else
+            {
+                bool extendida = false;
+                int cont = 0;
+                bool eliminado = false;
+                for (struct partition p : mbr->PARTICION)
+                {
+                    if (p.type[0] == 101)
+                    {
+                        extendida = true;
+                        struct partition Extendida = mbr->PARTICION[cont++];
+                        ebr = ObtenerEBR(path, Extendida.start);
+                        EBR *ebrAux = new struct EBR;
+                        do
+                        {
+                            string nm = ebr->nombre;
+                            if (nm == name)
+                            {
+                                ebrAux->next = ebr->next;
+                                strcpy(ebr->status, "");
+                                strcpy(ebr->fit, "");
+                                int copiaStart = ebr->start - sizeof(EBR);
+                                ebr->start = 0;
+                                strcpy(ebr->nombre, "");
+                                ebr->size = 0;
+                                ebr->next = 0;
+
+                                EscribirEBR(path, copiaStart);
+                                ebr = ebrAux;
+                                int posicion = ebr->start - sizeof(EBR);
+                                EscribirEBR(path, posicion);
+
+                                cout << "Particion Eliminada!" << endl;
+                                eliminado = true;
+                                break;
+                            }
+                            ebrAux = ebr;
+                            if (ebrAux->next != -1)
+                            {
+                                ebr = ObtenerEBR(path, ebr->next);
+                            }
+                        } while (ebrAux->next != -1);
+                    }
+
+                    cont++;
+                    if (eliminado)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            ID_ParticionDisco.erase(ID_ParticionDisco.begin() + match);
+            break;
+        }
+
+        match++;
+    }
+}
+
+void Full(string name, string path)
+{
+    int match = 0;
+    for (struct NombresParticion x : ID_ParticionDisco)
+    {
+        if (x.Nombre_Particion == name && x.signature == mbr->SIGNATURE)
+        {
+            if (x.type_Particion == "p" || x.type_Particion == "e")
+            {
+                int cont = 0;
+
+                for (struct partition p : mbr->PARTICION)
+                {
+                    string nombre = p.nombre;
+                    if (nombre == name)
+                    {
+
+                        FILE *file = fopen(path.c_str(), "rb+");
+                        rewind(file);
+                        fwrite(&mbr, sizeof(MBR), 1, file);
+                        int tama = static_cast<int>(mbr->PARTICION[cont].size / 2);
+                        fseek(file, mbr->PARTICION[cont].start, 0);
+                        fwrite("\0", sizeof("\0"), tama, file);
+                        fclose(file);
+
+                        strcpy(mbr->PARTICION[cont].fit, "");
+                        strcpy(mbr->PARTICION[cont].nombre, "");
+                        strcpy(mbr->PARTICION[cont].type, "");
+                        mbr->PARTICION[cont].size = 0;
+                        mbr->PARTICION[cont].start = 0;
+                        strcpy(mbr->PARTICION[cont].status, "");
+
+                        ActualizarMBR(path);
+                        string fit = p.fit;
+                        if (fit == "e")
+                        {
+                            ContadorExtendida--;
+                        }
+                        else if (fit == "p")
+                        {
+                            ContadorPrimaria--;
+                        }
+
+                        cout << "Particion Eliminada!" << endl;
+                        break;
+                    }
+                    cont++;
+                }
+            }
+            else
+            {
+                bool extendida = false;
+                int cont = 0;
+                bool eliminado = false;
+                for (struct partition p : mbr->PARTICION)
+                {
+                    if (p.type[0] == 101)
+                    {
+                        extendida = true;
+                        struct partition Extendida = mbr->PARTICION[cont++];
+                        ebr = ObtenerEBR(path, Extendida.start);
+                        EBR *ebrAux = new struct EBR;
+                        do
+                        {
+                            string nm = ebr->nombre;
+                            if (nm == name)
+                            {
+                                ebrAux->next = ebr->next;
+                                strcpy(ebr->status, "");
+                                strcpy(ebr->fit, "");
+                                int copiaStart = ebr->start - sizeof(EBR);
+                                ebr->start = 0;
+                                strcpy(ebr->nombre, "");
+                                ebr->size = 0;
+                                ebr->next = 0;
+
+                                EscribirEBR(path, copiaStart);
+                                ebr = ebrAux;
+                                int posicion = ebr->start - sizeof(EBR);
+                                FILE *file = fopen(path.c_str(), "rb+");
+                                fseek(file, copiaStart, 0);
+                                fwrite(&ebr, sizeof(EBR), 1, file);
+                                fclose(file);
+                                EscribirEBR(path, posicion);
+
+                                cout << "Particion Eliminada!" << endl;
+                                eliminado = true;
+                                break;
+                            }
+                            ebrAux = ebr;
+                            if (ebrAux->next != -1)
+                            {
+                                ebr = ObtenerEBR(path, ebr->next);
+                            }
+                        } while (ebrAux->next != -1);
+                    }
+                    cont++;
+                    if (eliminado)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            ID_ParticionDisco.erase(ID_ParticionDisco.begin() + match);
+            break;
+        }
+
+        match++;
+    }
+}
+
+void EliminarParticion(string path, string name, string tipoEliminacion)
+{
+    if (VerificarNombre(name))
+    {
+        if (tipoEliminacion == "fast")
+        {
+            Fast(name, path);
+        }
+        else if (tipoEliminacion == "full")
+        {
+            Full(name, path);
+        }
+        else
+        {
+            cout << "Error, no se ha encontrado este tipo de eliminación!" << endl;
+        }
+    }
+    else
+    {
+        cout << "Error, no existe una partición con este nombre en este disco!" << endl;
     }
 }
 
@@ -1008,6 +1407,19 @@ void Prueba_LlenarParticiones(string path)
 }
 //-----------------------------------------------COMANDOS-----------------------------------------------------------------
 
+//MONTAR PARTICIONES
+void mount(string path, string name)
+{
+    mbr = ObtenerMBR(path);
+    if (VerificarNombre(name))
+    {
+        string id=GenerarID(mbr->SIGNATURE,name);
+        insertarFinal(listaMount,mbr->SIGNATURE,name,id);
+    }else{
+        cout<<"Error, No existe ninguna partición con este nombre!"<<endl;
+    }
+}
+
 //CREAR PARTICIONES
 void fdisk(int size, string u, string path, string type, string f, string name, int add, string deleted, string operacion)
 {
@@ -1036,10 +1448,14 @@ void fdisk(int size, string u, string path, string type, string f, string name, 
     else if (operacion == "add")
     {
         //Extender
+        cout << "TE FALTA EXTENDER PARTICIONEEEESSS! NO SE TE OLVIDE!" << endl;
     }
     else if (operacion == "delete")
     {
         //Eliminar
+        ActualizarContadores(1);
+        EliminarParticion(path, name, deleted);
+        ActualizarContadores(2);
     }
     //cout << size << endl;
     //string imprimir = u + " " + path + " " + type + "\n " + f + " " + name + " " + operacion;

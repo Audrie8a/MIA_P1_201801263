@@ -101,10 +101,11 @@ bool VerificarExistencia(string path)
             }
         }
     }
-    if(aux!=""){
+    if (aux != "")
+    {
         path = aux;
     }
-    
+
     bool existencia = false;
     struct stat buffer;
     int exists = stat(path.c_str(), &buffer);
@@ -294,7 +295,7 @@ void pause()
 
 void Fdisk()
 {
-    bool error=false;
+    bool error = false;
     int size = 0;
     string f = "";
     string u = "";
@@ -421,20 +422,20 @@ void Fdisk()
                     transform(u.begin(), u.end(), u.begin(), ::tolower);
                     name = ObtenerPaths(name);
                     path = ObtenerPaths(path);
-                    if (operacion=="add")
+                    if (operacion == "add")
                     {
-                        fdisk(size,u,path,type,f,name,add,"",operacion);
+                        fdisk(size, u, path, type, f, name, add, "", operacion);
                     }
-                    else if (operacion=="delete")
+                    else if (operacion == "delete")
                     {
-                       
-                        fdisk(size,u,path,type,f,name,0,deleted,operacion);
+                        transform(deleted.begin(), deleted.end(), deleted.begin(), ::tolower);
+                        fdisk(size, u, path, type, f, name, 0, deleted, operacion);
                     }
                     else
                     {
                         if (size != 0)
                         {
-                            fdisk(size,u,path,type,f,name,0,"",operacion);
+                            fdisk(size, u, path, type, f, name, 0, "", operacion);
                         }
                         else
                         {
@@ -458,6 +459,64 @@ void Fdisk()
         cout << "Ha sucedido un error al obtener los datos para crear la particion" << endl;
     }
 }
+
+void Mount()
+{
+    string path = "";
+    string name = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+            if (cmd == "-path")
+            {
+                indice++;
+                path = CMD[indice];
+            }
+            else if (cmd == "-name")
+            {
+                indice++;
+                name = CMD[indice];
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+            }
+            indice++;
+        }
+        if (path != "" && name != "")
+        {
+            path = ObtenerPaths(path);
+            name = ObtenerPaths(name);
+            //Comprobar existencia del archivo
+            FILE *arch;
+            arch = fopen(path.c_str(), "rb");
+            if (arch)
+            {
+                mount(path, name);
+                fclose(arch);
+            } else
+            {
+                cout << "Error, archivo no encontrado!" << endl;
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
+    }
+}
+
 
 //Aquí va la el listado de comandos que se pueden ejecutar
 void Ejecutar(vector<string> vector)
@@ -493,7 +552,7 @@ void Ejecutar(vector<string> vector)
     else if (cmd == "mount")
     {
         indice++;
-        //Mount();
+        Mount();
         indice = 0;
     }
     else if (cmd == "unmount")
