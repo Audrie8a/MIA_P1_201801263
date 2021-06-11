@@ -15,6 +15,7 @@ vector<int> ID_Disco; //Signature
 
 int ContadorPrimaria = 0;
 int ContadorExtendida = 0;
+int ContadorMount=0;
 
 struct MBR *mbr = new struct MBR;
 struct EBR *ebr = new struct EBR;
@@ -100,13 +101,15 @@ void eliminarElemento(TLista &lista, string id)
 TLista ObtenerUltimoNodo(TLista lista)
 {
     TLista q = lista;
-
+    TLista aux=q;
     while (q != nullptr)
     {
+        aux=q;
         q = q->sig;
+
     }
 
-    return q;
+    return aux;
 }
 
 bool buscarElemento(TLista lista, string id)
@@ -133,13 +136,14 @@ TLista ParticionesMontadas_Disco(TLista lista, int signature)
     int existencia = 0;
     TLista aux;
     TLista q = lista;
+    aux=q;
     while (q != nullptr)
     {
-        if (q->signature = signature)
+        if (q->signature == signature)
         {
             existencia++;
             aux = q;
-            aux->signature = existencia; //Se guarda en signature el número de partición montada que es
+            ContadorMount = existencia; //Se guarda en signature el número de partición montada que es
         }
         q = q->sig;
     }
@@ -148,17 +152,20 @@ TLista ParticionesMontadas_Disco(TLista lista, int signature)
 
 string GenerarID(int signature, string name)
 {
+    ContadorMount=0;
     string abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     string udt = "1234567890";
     string id = "63";
     TLista aux = ParticionesMontadas_Disco(listaMount, signature);
     //Numero de particiones Montadas en el disco
-    int contador = aux->signature;
-    if (contador == 0)
+    
+    if (ContadorMount==0)
     { //No se ha montado ninguna partición de este disco
+        
         aux = ObtenerUltimoNodo(listaMount);
-        if (aux->sig != nullptr) //si la lista no está vacía
+        if (aux != nullptr) //si la lista no está vacía        
         {
+            
             string auxNum = "";
             for (int i = 2; i < aux->id.size() - 1; i++)
             {
@@ -176,12 +183,13 @@ string GenerarID(int signature, string name)
     }
     else
     {
+        int contador = ContadorMount;
         string auxNum = "";
         for (int i = 2; i < aux->id.size() - 1; i++)
         {
             auxNum += aux->id[i];
         }
-        id += auxNum + abc[contador - 1];
+        id += auxNum + abc[contador];
     }
 
     return id;
@@ -1414,6 +1422,7 @@ void mount(string path, string name)
     if (VerificarNombre(name))
     {
         string id=GenerarID(mbr->SIGNATURE,name);
+        cout<<id<<endl;
         insertarFinal(listaMount,mbr->SIGNATURE,name,id);
     }else{
         cout<<"Error, No existe ninguna partición con este nombre!"<<endl;
