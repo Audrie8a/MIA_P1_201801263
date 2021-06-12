@@ -15,7 +15,8 @@ vector<int> ID_Disco; //Signature
 
 int ContadorPrimaria = 0;
 int ContadorExtendida = 0;
-int ContadorMount=0;
+int ContadorMount = 0;
+int sizeLstMount = 0;
 
 struct MBR *mbr = new struct MBR;
 struct EBR *ebr = new struct EBR;
@@ -29,10 +30,29 @@ public:
     ~Comando(){};
 };
 
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//--------------------------------------------------------MANEJO DE ARCHIVOS ------------------------------------------
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+
+string Chart_String(string arreglo, int limite)
+{
+    string Cadena = "";
+    for (int i = 0; i < limite; i++)
+    {
+        Cadena = Cadena + arreglo[i];
+    }
+    return Cadena;
+}
+
 //CREAR ESTRUCTURA NODO
-struct nodo
+struct nodo //--------------------------------------------------todo usado para el comando Mount
 {
     int signature;
+    string path;
     string name;
     string id;
     struct nodo *sig;
@@ -42,12 +62,13 @@ typedef struct nodo *TLista;
 
 TLista listaMount = NULL;
 
-void insertarFinal(TLista &lista, int signature, string name, string id)
+void insertarFinal(TLista &lista, int signature, string name, string id, string path)
 {
     TLista t, q = new (struct nodo);
     q->signature = signature;
     q->name = name;
     q->id = id;
+    q->path = path;
     q->sig = nullptr;
 
     if (lista == nullptr)
@@ -63,11 +84,13 @@ void insertarFinal(TLista &lista, int signature, string name, string id)
         }
         t->sig = q;
     }
-    cout<<"Particion Montada!"<<endl;
+    sizeLstMount++;
+    cout << "Particion Montada!" << endl;
 }
 
-void eliminarElemento(TLista &lista, string id)
+bool eliminarElemento(TLista &lista, string id)
 {
+    bool Eliminado = false;
     TLista p, ant;
     p = lista;
 
@@ -75,7 +98,10 @@ void eliminarElemento(TLista &lista, string id)
     {
         while (p != nullptr)
         {
-            if (p->id == id)
+            string ID = p->id;
+            transform(ID.begin(), ID.end(), ID.begin(), ::tolower);
+            transform(id.begin(), id.end(), id.begin(), ::tolower);
+            if (ID == id)
             {
                 if (p == lista)
                 {
@@ -86,8 +112,12 @@ void eliminarElemento(TLista &lista, string id)
                     ant->sig = p->sig;
                 }
                 delete (p);
-                return;
+                Eliminado = true;
+                cout << "Partición " + id + " desmontada!" << endl;
+                break;
             }
+
+            Eliminado = false;
             ant = p;
             p = p->sig;
         }
@@ -96,17 +126,18 @@ void eliminarElemento(TLista &lista, string id)
     {
         cout << "Aún no existen Particiones Montadas!" << endl;
     }
+
+    return Eliminado;
 }
 
 TLista ObtenerUltimoNodo(TLista lista)
 {
     TLista q = lista;
-    TLista aux=q;
+    TLista aux = q;
     while (q != nullptr)
     {
-        aux=q;
+        aux = q;
         q = q->sig;
-
     }
 
     return aux;
@@ -120,9 +151,34 @@ bool buscarElemento(TLista lista, string id)
     int i = 1;
     while (q != nullptr)
     {
-        if (q->id == id)
+        string ID = q->id;
+        transform(ID.begin(), ID.end(), ID.begin(), ::tolower);
+        transform(id.begin(), id.end(), id.begin(), ::tolower);
+        if (ID == id)
         {
             existencia = true;
+            break;
+        }
+        q = q->sig;
+        i++;
+    }
+    return existencia;
+}
+
+TLista getElemento(TLista lista, string id)
+{
+    TLista existencia = nullptr;
+
+    TLista q = lista;
+    int i = 1;
+    while (q != nullptr)
+    {
+        string ID = q->id;
+        transform(ID.begin(), ID.end(), ID.begin(), ::tolower);
+        transform(id.begin(), id.end(), id.begin(), ::tolower);
+        if (ID == id)
+        {
+            existencia = q;
             break;
         }
         q = q->sig;
@@ -136,7 +192,7 @@ TLista ParticionesMontadas_Disco(TLista lista, int signature)
     int existencia = 0;
     TLista aux;
     TLista q = lista;
-    aux=q;
+    aux = q;
     while (q != nullptr)
     {
         if (q->signature == signature)
@@ -150,31 +206,49 @@ TLista ParticionesMontadas_Disco(TLista lista, int signature)
     return aux;
 }
 
+string ObtenerLetra(string numero)
+{
+    string abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int cont = 0;
+    string id = "63" + numero;
+    string letra = "";
+    for (int i = 0; i < abc.size(); i++)
+    {
+        id = "63" + numero + abc[i];
+        if (!buscarElemento(listaMount, id))
+        {
+            letra = abc[i];
+            break;
+        }
+    }
+
+    return letra;
+}
+
 string GenerarID(int signature, string name)
 {
-    ContadorMount=0;
-    string abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    ContadorMount = 0;
     string udt = "1234567890";
     string id = "63";
     TLista aux = ParticionesMontadas_Disco(listaMount, signature);
     //Numero de particiones Montadas en el disco
-    
-    if (ContadorMount==0)
+
+    if (ContadorMount == 0)
     { //No se ha montado ninguna partición de este disco
-        
+
         aux = ObtenerUltimoNodo(listaMount);
-        if (aux != nullptr) //si la lista no está vacía        
+        if (aux != nullptr) //si la lista no está vacía
         {
-            
+
             string auxNum = "";
             for (int i = 2; i < aux->id.size() - 1; i++)
             {
                 auxNum += aux->id[i];
             }
-            //Se asigna el siguiente número 
-            int num=atoi(auxNum.c_str())+1;
-            auxNum=to_string(num);
-            id+=auxNum+"A";
+            //Se asigna el siguiente número
+            int num = atoi(auxNum.c_str()) + 1;
+            auxNum = to_string(num);
+            id += auxNum + "A";
         }
         else //Si la lista está vacía
         {
@@ -183,13 +257,14 @@ string GenerarID(int signature, string name)
     }
     else
     {
-        int contador = ContadorMount;
+
         string auxNum = "";
         for (int i = 2; i < aux->id.size() - 1; i++)
         {
             auxNum += aux->id[i];
         }
-        id += auxNum + abc[contador];
+        string Letra = ObtenerLetra(auxNum);
+        id += auxNum + Letra;
     }
 
     return id;
@@ -220,144 +295,6 @@ struct Contadores
 vector<Contadores> lstContadores;
 vector<Espacio> lstEspacios;
 vector<NombresParticion> ID_ParticionDisco; //Signature Disco - NombreParticion
-
-//------------------------------------------------------------------GRAFICAS-------------------------------------------------------------------
-void ReporteMBR()
-{
-    string Imprimir = "digraph G {";
-
-    Imprimir += "\tnodo[shape=plaintext label=<";
-    Imprimir += "\t \t    <table>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Nombre</b></td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Valor</b></td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_tamano</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIZE) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_fecha_creacion</td>";
-    //Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->FECHA) + "</td>";
-    char fecha[25];
-    time_t current_time = mbr->FECHA;
-    ctime(&current_time);
-    strcpy(fecha, ctime(&current_time));
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(fecha) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_disk_signature</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIGNATURE) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t            <td colspan=\"4\">Disk_fit</td>";
-    Imprimir += "\t \t \t \t            <td colspan=\"4\">" + string(mbr->FIT) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        ";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].status) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].type) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].fit) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].start) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].size) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_1</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].nombre) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        ";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].status) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].type) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].fit) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].start) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].size) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_2</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].nombre) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        ";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].status) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].type) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].fit) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].start) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].size) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_3</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].nombre) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        ";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].status) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].type) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].fit) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].start) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].size) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t        <tr>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_4</td>";
-    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].nombre) + "</td>";
-    Imprimir += "\t \t \t        </tr>";
-    Imprimir += "\t \t \t    ";
-    Imprimir += "\t \t    </table>";
-    Imprimir += "\t>];";
-    Imprimir += "}";
-}
 
 //OBTIENE UN NÚMERO RANDOOM DEL 1 AL 100, DIFERENTE A OTROS GENERADOS-------------------Usados en Mkdisk
 int SignatureDisco()
@@ -455,6 +392,26 @@ bool VerificarNombre(string name)
     return verificacion;
 }
 
+NombresParticion getNombre(string name)
+{
+    struct NombresParticion verificacion;
+
+    if (ID_ParticionDisco.size() != 0)
+    {
+        for (struct NombresParticion x : ID_ParticionDisco)
+        {
+            if (x.Nombre_Particion == name && x.signature == mbr->SIGNATURE)
+            {
+                //Se repite
+                verificacion = x;
+                break;
+            }
+        }
+    }
+
+    return verificacion;
+}
+
 //ACTUALIZA MBR EN EL DISCO
 void ActualizarMBR(string path)
 {
@@ -535,6 +492,79 @@ void EscribirEBR(string path, int start)
     fwrite(ebr, sizeof(EBR), 1, fichero);
     fclose(fichero);
     mbr = ObtenerMBR(path);
+}
+
+void ActualizarStatus(string name, string path, string status)
+{
+
+    struct partition aux;
+    bool existe = false;
+    for (int i = 0; i < 4; i++)
+    {
+        aux = mbr->PARTICION[i];
+        string nombre = aux.nombre;
+        if (nombre == name)
+        {
+            string fit = mbr->PARTICION[i].fit;
+            string type = mbr->PARTICION[i].type;
+            int start = mbr->PARTICION[i].start;
+            int size = mbr->PARTICION[i].size;
+            string nom = mbr->PARTICION[i].nombre;
+            strcpy(mbr->PARTICION[i].status, status.c_str());
+            strcpy(mbr->PARTICION[i].fit, fit.c_str());
+            strcpy(mbr->PARTICION[i].type, type.c_str());
+            strcpy(mbr->PARTICION[i].nombre, nom.c_str());
+            mbr->PARTICION[i].start = start;
+            mbr->PARTICION[i].size;
+            ActualizarMBR(path);
+            existe = true;
+            break;
+        }
+    }
+
+    if (!existe)
+    { //No está en particiones primarias o extendidas
+
+        bool extendida = false;
+        for (int i = 0; i < 4; i++)
+        {
+            aux = mbr->PARTICION[i];
+            if (Chart_String(aux.type, 1) == "e")
+            {
+                struct partition Ext = aux;
+                ebr = ObtenerEBR(path, Ext.start);
+                EBR *ebrAux = new struct EBR;
+
+                do
+                {
+                    string n = ebr->nombre;
+                    if (n == name)
+                    {
+                        string fit = ebr->fit;
+                        string nom = ebr->nombre;
+                        int start = ebr->start;
+                        int next = ebr->next;
+                        int size = ebr->size;
+                        strcpy(ebr->status, status.c_str());
+                        strcpy(ebr->nombre, nom.c_str());
+                        strcpy(ebr->fit, fit.c_str());
+                        ebr->start = start;
+                        ebr->next = next;
+                        ebr->size = size;
+                        int Inicio = ebr->start - sizeof(EBR);
+                        EscribirEBR(path, Inicio);
+                        break;
+                    }
+
+                    ebrAux = ebr;
+                    if (ebrAux->next != -1)
+                    {
+                        ebr = ObtenerEBR(path, ebr->next);
+                    }
+                } while (ebrAux->next != -1);
+            }
+        }
+    }
 }
 
 //ORDENAR LAS PARTICIONES GUARDADAS EN EL MBR
@@ -680,7 +710,7 @@ void PrimerAjuste(int size, string name, string type, string path)
                 {
                     if (x.Tama >= size)
                     {
-                        strcpy(Particion.status, "u");
+                        strcpy(Particion.status, "0");
                         strcpy(Particion.type, type.c_str());
                         strcpy(Particion.fit, "f");
                         Particion.start = x.Inicio;
@@ -701,7 +731,7 @@ void PrimerAjuste(int size, string name, string type, string path)
                     if (type == "e")
                     {
                         //ESCRIBIR EBR
-                        strcpy(ebr->status, "u");
+                        strcpy(ebr->status, "0");
                         strcpy(ebr->fit, "w");
                         ebr->start = mbr->PARTICION[0].start + sizeof(EBR);
                         ebr->next = -1;
@@ -754,7 +784,7 @@ void PrimerAjuste(int size, string name, string type, string path)
                     {
                         if (x.Tama >= size)
                         {
-                            strcpy(ebr->status, "u");
+                            strcpy(ebr->status, "0");
                             strcpy(ebr->fit, "f");
                             ebr->start = x.Inicio + sizeof(EBR);
                             strcpy(ebr->nombre, name.c_str());
@@ -840,7 +870,7 @@ void MejorAjuste(int size, string name, string type, string path)
                 }
                 if (Mejor.Tama != mbr->SIZE - 1)
                 {
-                    strcpy(Particion.status, "u");
+                    strcpy(Particion.status, "0");
                     strcpy(Particion.type, type.c_str());
                     strcpy(Particion.fit, "b");
                     Particion.start = Mejor.Inicio;
@@ -854,7 +884,7 @@ void MejorAjuste(int size, string name, string type, string path)
                     if (type == "e")
                     {
                         //ESCRIBIR EBR
-                        strcpy(ebr->status, "u");
+                        strcpy(ebr->status, "0");
                         strcpy(ebr->fit, "w");
                         ebr->start = mbr->PARTICION[0].start + sizeof(EBR);
                         ebr->next = -1;
@@ -913,7 +943,7 @@ void MejorAjuste(int size, string name, string type, string path)
 
                     if (Mejor.Tama != mbr->SIZE - 1)
                     {
-                        strcpy(ebr->status, "u");
+                        strcpy(ebr->status, "0");
                         strcpy(ebr->fit, "b");
                         ebr->start = Mejor.Inicio + sizeof(EBR);
                         strcpy(ebr->nombre, name.c_str());
@@ -997,7 +1027,7 @@ void PeorAjuste(int size, string name, string type, string path)
 
                 if (Peor.Tama != 0)
                 {
-                    strcpy(Particion.status, "u");
+                    strcpy(Particion.status, "0");
                     strcpy(Particion.type, type.c_str());
                     strcpy(Particion.fit, "b");
                     Particion.start = Peor.Inicio;
@@ -1011,7 +1041,7 @@ void PeorAjuste(int size, string name, string type, string path)
                     if (type == "e")
                     {
                         //ESCRIBIR EBR
-                        strcpy(ebr->status, "u");
+                        strcpy(ebr->status, "0");
                         strcpy(ebr->fit, "w");
                         ebr->start = mbr->PARTICION[0].start + sizeof(EBR); //Inicio particionExtendida+ tamaño EBR= Inicio Particion logica
                         ebr->next = -1;
@@ -1071,7 +1101,7 @@ void PeorAjuste(int size, string name, string type, string path)
 
                     if (Peor.Tama != 0)
                     {
-                        strcpy(ebr->status, "u");
+                        strcpy(ebr->status, "0");
                         strcpy(ebr->fit, "w");
                         ebr->start = Peor.Inicio + sizeof(EBR);
                         strcpy(ebr->nombre, name.c_str());
@@ -1209,22 +1239,44 @@ void Fast(string name, string path)
                             string nm = ebr->nombre;
                             if (nm == name)
                             {
-                                ebrAux->next = ebr->next;
-                                strcpy(ebr->status, "");
-                                strcpy(ebr->fit, "");
-                                int copiaStart = ebr->start - sizeof(EBR);
-                                ebr->start = 0;
-                                strcpy(ebr->nombre, "");
-                                ebr->size = 0;
-                                ebr->next = 0;
+                                int inicio = p.start + sizeof(EBR);
+                                if (inicio != ebr->start)
+                                {
+                                    ebrAux->next = ebr->next;
+                                    strcpy(ebr->status, "");
+                                    strcpy(ebr->fit, "");
+                                    int copiaStart = ebr->start - sizeof(EBR);
+                                    ebr->start = 0;
+                                    strcpy(ebr->nombre, "");
+                                    ebr->size = 0;
+                                    ebr->next = 0;
 
-                                EscribirEBR(path, copiaStart);
-                                ebr = ebrAux;
-                                int posicion = ebr->start - sizeof(EBR);
-                                EscribirEBR(path, posicion);
+                                    EscribirEBR(path, copiaStart);
+                                    ebr = ebrAux;
+                                    int posicion = ebr->start - sizeof(EBR);
+                                    EscribirEBR(path, posicion);
 
-                                cout << "Particion Eliminada!" << endl;
-                                eliminado = true;
+                                    cout << "Particion Eliminada!" << endl;
+                                    eliminado = true;
+                                }
+                                else
+                                {
+                                    //ebrAux->next = ebr->next;
+                                    //strcpy(ebr->status, "0");
+                                    //strcpy(ebr->fit, "w");
+                                    //int copiaStart = ebr->start - sizeof(EBR);
+                                    //ebr->start = p.start+sizeof(EBR);
+                                    //strcpy(ebr->nombre, "xx");
+                                    //ebr->size = 0;
+                                    //
+                                    //EscribirEBR(path, copiaStart);
+                                    //ebr = ebrAux;
+                                    //int posicion = ebr->start - sizeof(EBR);
+                                    //EscribirEBR(path, posicion);
+                                    //
+                                    //cout << "Particion Eliminada!" << endl;
+                                    cout << "Hay errores al eliminar la primera particion logica, falta arreglarlo!" << endl;
+                                }
                                 break;
                             }
                             ebrAux = ebr;
@@ -1318,26 +1370,34 @@ void Full(string name, string path)
                             string nm = ebr->nombre;
                             if (nm == name)
                             {
-                                ebrAux->next = ebr->next;
-                                strcpy(ebr->status, "");
-                                strcpy(ebr->fit, "");
-                                int copiaStart = ebr->start - sizeof(EBR);
-                                ebr->start = 0;
-                                strcpy(ebr->nombre, "");
-                                ebr->size = 0;
-                                ebr->next = 0;
+                                int inicio = p.start + sizeof(EBR);
+                                if (inicio != ebr->start)
+                                {
+                                    ebrAux->next = ebr->next;
+                                    strcpy(ebr->status, "");
+                                    strcpy(ebr->fit, "");
+                                    int copiaStart = ebr->start - sizeof(EBR);
+                                    ebr->start = 0;
+                                    strcpy(ebr->nombre, "");
+                                    ebr->size = 0;
+                                    ebr->next = 0;
 
-                                EscribirEBR(path, copiaStart);
-                                ebr = ebrAux;
-                                int posicion = ebr->start - sizeof(EBR);
-                                FILE *file = fopen(path.c_str(), "rb+");
-                                fseek(file, copiaStart, 0);
-                                fwrite(&ebr, sizeof(EBR), 1, file);
-                                fclose(file);
-                                EscribirEBR(path, posicion);
+                                    EscribirEBR(path, copiaStart);
+                                    ebr = ebrAux;
+                                    int posicion = ebr->start - sizeof(EBR);
+                                    FILE *file = fopen(path.c_str(), "rb+");
+                                    fseek(file, copiaStart, 0);
+                                    fwrite(&ebr, sizeof(EBR), 1, file);
+                                    fclose(file);
+                                    EscribirEBR(path, posicion);
 
-                                cout << "Particion Eliminada!" << endl;
-                                eliminado = true;
+                                    cout << "Particion Eliminada!" << endl;
+                                    eliminado = true;
+                                }
+                                else
+                                {
+                                    cout << "Hay errores al eliminar la primera particion logica, falta arreglarlo!" << endl;
+                                }
                                 break;
                             }
                             ebrAux = ebr;
@@ -1413,7 +1473,391 @@ void Prueba_LlenarParticiones(string path)
     //ContadorPrimaria=2;
     //ContadorExtendida=1;
 }
+
+//------------------------------------------------------------------GRAFICAS-------------------------------------------------------------------
+void Graficar(string ruta, string nombreArchivo, string Contenido)
+{
+    ofstream file;
+    file.open(nombreArchivo);
+    file << Contenido;
+    file.close();
+    string comando = "dot -Tjpg " + nombreArchivo + " -o " + ruta;
+    system(comando.c_str());
+}
+
+string ReporteMBR(string pathDisco)
+{
+    string Imprimir = "digraph G {\n";
+    Imprimir += "graph [label=\"" + pathDisco + "\", labelloc=t, fontsize=30];\n";
+
+    //GUARDAR PARTE DEL MBR
+    Imprimir += "\tnodo[shape=plaintext label=<\n";
+    Imprimir += "\t \t    <table>\n";
+    Imprimir += "\t \t \t       <tr>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"8\"><b>MBR</b></td>\n";
+    Imprimir += "\t \t \t       </tr>\n";
+    Imprimir += "\t \t \t        <tr>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Nombre</b></td>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\"><b>Valor</b></td>\n";
+    Imprimir += "\t \t \t        </tr>\n";
+    Imprimir += "\t \t \t        <tr>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_tamano</td>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIZE) + "</td>\n";
+    Imprimir += "\t \t \t        </tr>\n";
+    Imprimir += "\t \t \t        <tr>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_fecha_creacion</td>\n";
+    //Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->FECHA) + "</td>";
+    char fecha[25];
+    time_t current_time = mbr->FECHA;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(fecha) + "</td>\n";
+    Imprimir += "\t \t \t        </tr>\n";
+    Imprimir += "\t \t \t        <tr>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">mbr_disk_signature</td>\n";
+    Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->SIGNATURE) + "</td>\n";
+    Imprimir += "\t \t \t        </tr>\n";
+    Imprimir += "\t \t \t        <tr>\n";
+    Imprimir += "\t \t \t \t            <td colspan=\"4\">Disk_fit</td>\n";
+    Imprimir += "\t \t \t \t            <td colspan=\"4\">" + string(mbr->FIT) + "</td>\n";
+    Imprimir += "\t \t \t        </tr>\n";
+    Imprimir += "\t \t \t        \n";
+    if (mbr->PARTICION[0].size != 0)
+    {
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[0].status), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[0].type), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[0].fit), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].start) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[0].size) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_1</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[0].nombre) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        \n";
+    }
+    if (mbr->PARTICION[1].size != 0)
+    {
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[1].status), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[1].type), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[1].fit), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].start) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[1].size) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_2</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[1].nombre) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        \n";
+    }
+    if (mbr->PARTICION[2].size != 0)
+    {
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[2].status), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[2].type), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[2].fit), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].start) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[2].size) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_3</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[2].nombre) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        \n";
+    }
+    if (mbr->PARTICION[3].size != 0)
+    {
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_status_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[3].status), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_type_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[3].type), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_fit_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + Chart_String(string(mbr->PARTICION[3].fit), 1) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_start_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].start) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_size_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + to_string(mbr->PARTICION[3].size) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t        <tr>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">part_name_4</td>\n";
+        Imprimir += "\t \t \t \t           <td colspan=\"4\">" + string(mbr->PARTICION[3].nombre) + "</td>\n";
+        Imprimir += "\t \t \t        </tr>\n";
+        Imprimir += "\t \t \t    \n";
+    }
+    Imprimir += "\t \t    </table>\n";
+    Imprimir += "\t>];\n";
+
+    //GUARDA LOS DATOS DE LOS EBR EXISTENTES
+    int cont = 1;
+
+    for (struct partition p : mbr->PARTICION)
+    {
+        if (p.type[0] == 101)
+        {
+            ebr = ObtenerEBR(pathDisco, p.start);
+            string nombre = ebr->nombre;
+            if (nombre != "xx" && ebr->next != -1)
+            {
+                EBR *ebrAux = new struct EBR;
+                do
+                {
+
+                    Imprimir += "nodo" + to_string(cont) + "[shape=plaintext label=<\n";
+                    Imprimir += "    <table>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"8\"><b>EBR_" + to_string(cont) + "</b></td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\"><b>Nombre</b></td>\n";
+                    Imprimir += "            <td colspan=\"4\"><b>Valor</b></td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_status1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + Chart_String(string(ebr->status), 1) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_fit_1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + Chart_String(string(ebr->fit), 1) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_start_1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + to_string(ebr->start) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_size_1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + to_string(ebr->size) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        \n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_next_1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + to_string(ebr->next) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        <tr>\n";
+                    Imprimir += "            <td colspan=\"4\">part_name_1</td>\n";
+                    Imprimir += "            <td colspan=\"4\">" + string(ebr->nombre) + "</td>\n";
+                    Imprimir += "        </tr>\n";
+                    Imprimir += "        \n";
+                    Imprimir += "    \n";
+                    Imprimir += "    </table>\n";
+                    Imprimir += "\n";
+                    Imprimir += ">];\n";
+                    ebrAux = ebr;
+                    if (ebrAux->next != -1)
+                    {
+                        ebr = ObtenerEBR(pathDisco, ebr->next);
+                    }
+                    cont++;
+                } while (ebrAux->next != -1);
+            }
+            //else "No existen Lógicas agregadas"
+        }
+    }
+    Imprimir += "}\n";
+
+    return Imprimir;
+}
+
+string ReporteDisk(string pathDisco)
+{
+    string Imprimir = "digraph G {\n";
+    Imprimir += "graph [label=\"" + pathDisco + "\", labelloc=t, fontsize=30];\n";
+    //Imprimir +="";
+    Imprimir += "\t	nodo[shape=plaintext label=<";
+    Imprimir += "\t\t	 	    <table>";
+    Imprimir += "\t\t\t	 	        <tr>";
+    Imprimir += "\t\t\t\t	 	 	 	           <td rowspan =\"4\"><b>MBR</b></td>";
+
+    struct partition p;
+    int Inicio = sizeof(MBR);
+    //IMPRIMIR PARTICIONES PRIMARIAS Y EXTENDIDAS
+    for (int i = 0; i < 4; i++)
+    {
+        p = mbr->PARTICION[i];
+        if (p.size != 0)
+        {
+            if (Inicio != p.start)
+            {
+                Imprimir += "\t\t\t\t	 	 	 	           <td rowspan =\"4\" color=\"red\">Libre</td>";
+                Inicio = p.start;
+                i--;
+            }
+            else
+            {
+                string typpe = p.type;
+                if (Chart_String(typpe, 1) != "e")
+                {
+                    Imprimir += "\t\t\t\t	 	 	 	           <td rowspan =\"4\">" + string(p.nombre) + " </td>";
+                }
+                else
+                {
+                    Imprimir += "\t\t\t\t	 	 	 	           <td colspan=\"8\">" + string(p.nombre) + "</td>";
+                }
+                Inicio = Inicio + p.size;
+            }
+        }
+    }
+    if (Inicio != mbr->SIZE - 1)
+    {
+        Imprimir += "\t\t\t\t	 	 	 	           <td rowspan =\"4\" color=\"red\">Libre</td>";
+    }
+
+    Imprimir += "\t\t\t	 	 	    </tr>";
+
+    //IMPRIMIR PARTICIONES LOGICAS
+    Imprimir += "\t\t\t	 	 	    <tr>";
+    Imprimir += "\t\t\t\t	 	 	 	           ";
+    for (struct partition p : mbr->PARTICION)
+    {
+        if (p.type[0] == 101)
+        {
+            ebr = ObtenerEBR(pathDisco, p.start);
+            string nombre = ebr->nombre;
+            if (nombre != "xx" && ebr->next != -1)
+            {
+                EBR *ebrAux = new struct EBR;
+                int Start = p.start + sizeof(EBR);
+                bool libre = false;
+                do
+                {
+                    if (Start != ebr->start)
+                    {
+                        Imprimir += "\t\t\t\t	 	 	 	           <td rowspan =\"4\" color=\"red\">Libre</td>";
+                        libre = true;
+                        Start = ebr->start;
+                    }
+                    else
+                    {
+                        Imprimir += "\t\t\t\t	 	 	 	           <td >EBR</td>";
+                        Imprimir += "\t\t\t\t	 	 	 	           <td >" + string(ebr->nombre) + "</td>";
+                        Start = ebr->start + ebr->size;
+                    }
+                    ebrAux = ebr;
+                    if (ebrAux->next != -1 && libre != true)
+                    {
+                        ebr = ObtenerEBR(pathDisco, ebr->next);
+                    }
+                    libre = false;
+
+                } while (ebrAux->next != -1);
+            }
+            //else "No existen Lógicas agregadas"
+        }
+    }
+
+    Imprimir += "\t\t\t	 	 	    </tr>";
+    Imprimir += "\t\t	 	    </table>";
+    Imprimir += "\t	>];";
+    Imprimir += "}";
+    return Imprimir;
+}
+
 //-----------------------------------------------COMANDOS-----------------------------------------------------------------
+void repDisk(string path, string id)
+{
+    if (buscarElemento(listaMount, id))
+    { //Verificar que la partición esté montada
+        TLista aux = getElemento(listaMount, id);
+        mbr = ObtenerMBR(aux->path);
+        OrdenarParticiones(aux->path);
+        string Contenido = ReporteDisk(aux->path);
+        Graficar(path, "disk.dot", Contenido);
+        cout << "Grafica Generada!" << endl;
+    }
+    else
+    {
+        cout << "Error, no se encontró una partición con este id!" << endl;
+    }
+}
+//REPORTE MBR
+void repMBR(string path, string id)
+{
+    if (buscarElemento(listaMount, id))
+    { //Verificar que la partición esté montada
+        TLista aux = getElemento(listaMount, id);
+        mbr = ObtenerMBR(aux->path);
+        OrdenarParticiones(aux->path);
+        string Contenido = ReporteMBR(aux->path);
+        Graficar(path, "MBR.dot", Contenido);
+        cout << "Grafica Generada!" << endl;
+    }
+    else
+    {
+        cout << "Error, no se encontró una partición con este id!" << endl;
+    }
+}
+
+//DESMONTA PARTICIONES
+void Unmount(string id)
+{
+    TLista aux = getElemento(listaMount, id);
+    string path = "";
+    string name = "";
+    if (aux != nullptr)
+    {
+        path = aux->path;
+        name = aux->name;
+    }
+
+    if (!eliminarElemento(listaMount, id))
+    {
+        cout << "Error,No se encontró una partición con este id!" << endl;
+    }
+    else
+    {
+        mbr = ObtenerMBR(path);
+        ActualizarStatus(name, path, "0");
+    }
+}
 
 //MONTAR PARTICIONES
 void mount(string path, string name)
@@ -1421,11 +1865,14 @@ void mount(string path, string name)
     mbr = ObtenerMBR(path);
     if (VerificarNombre(name))
     {
-        string id=GenerarID(mbr->SIGNATURE,name);
-        cout<<id<<endl;
-        insertarFinal(listaMount,mbr->SIGNATURE,name,id);
-    }else{
-        cout<<"Error, No existe ninguna partición con este nombre!"<<endl;
+        string id = GenerarID(mbr->SIGNATURE, name);
+        cout << id << endl;
+        insertarFinal(listaMount, mbr->SIGNATURE, name, id, path);
+        ActualizarStatus(name, path, "1");
+    }
+    else
+    {
+        cout << "Error, No existe ninguna partición con este nombre!" << endl;
     }
 }
 
@@ -1515,4 +1962,78 @@ void mkdisk(int size, string f, string u, string path)
     //mbr= ObtenerMBR(path);
 }
 
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//--------------------------------------------------------SISTEMA DE ARCHIVOS------------------------------------------
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+
+partition ObtenerParticionPE(string name)
+{
+    struct partition aux = nullptr;
+    bool existe = false;
+    for (int i = 0; i < 4; i++)
+    {
+        aux = mbr->PARTICION[i];
+        string nombre = aux.nombre;
+        if (nombre == name)
+        {
+            existe = true;
+            break;
+        }
+    }
+
+    if (!existe)
+    { //No está en particiones primarias o extendidas
+
+        bool extendida = false;
+        for (int i = 0; i < 4; i++)
+        {
+            aux = mbr->PARTICION[i];
+            if (Chart_String(aux.type, 1) == "e")
+            {
+                struct partition Ext = aux;
+                ebr = ObtenerEBR(path, Ext.start);
+                EBR *ebrAux = new struct EBR;
+
+                do
+                {
+                    string n = ebr->nombre;
+                    if (n == name)
+                    {
+
+                        break;
+                    }
+
+                    ebrAux = ebr;
+                    if (ebrAux->next != -1)
+                    {
+                        ebr = ObtenerEBR(path, ebr->next);
+                    }
+                } while (ebrAux->next != -1);
+            }
+        }
+    }
+
+    return aux;
+}
+
+
+
+//---------------------------------------------------------------COMANDOS---------------------------------------------------------------------
+void mkfs(string id, string type, string fs)
+{
+    TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+        mbr = ObtenerMBR(aux->path);
+        struct partition Particion = ObtenerParticion(aux->name);
+    }
+    elxe
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
 #endif
