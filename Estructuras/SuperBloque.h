@@ -55,7 +55,7 @@ struct Journaling
     char path[80] = "";
     char operacion[10] = "vacio";
     char contenido[64] = ""; // Validar cuando espacio necesitan.
-    char log_fecha[16] = "";
+    time_t log_fecha;
     int size = 0;
     int InodoAfectado = -1;
 };
