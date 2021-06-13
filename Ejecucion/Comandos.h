@@ -1972,12 +1972,12 @@ void mkdisk(int size, string f, string u, string path)
 //*********************************************************************************************************************
 
 int numeroEstructuras; //---------------------------------------------------------Aquí comienzan comandos del MKFS
-string typeFormat; //fs
-string type;    //full o fast
+string typeFormat;     //fs
+string type;           //full o fast
 struct partition ParticionActual;
 string pathSA;
 
-struct partition ObtenerParticionPE(string name,string path)
+struct partition ObtenerParticionPE(string name, string path)
 {
     struct partition aux;
     bool existe = false;
@@ -1995,370 +1995,655 @@ struct partition ObtenerParticionPE(string name,string path)
     return aux;
 }
 
-int ObrenerN(string tipoSis){
-    int n=0;
-    if(tipoSis=="2fs"){
-        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque))/(4 + sizeof(TablaInodos) + 3*sizeof(BloqueArchivo)));
-    }else{
-        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque))/(4 + sizeof(TablaInodos) + 3*sizeof(BloqueArchivo) + sizeof(Journaling)));
+int ObrenerN(string tipoSis)
+{
+    int n = 0;
+    if (tipoSis == "2fs")
+    {
+        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque)) / (4 + sizeof(TablaInodos) + 3 * sizeof(BloqueArchivo)));
+    }
+    else
+    {
+        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque)) / (4 + sizeof(TablaInodos) + 3 * sizeof(BloqueArchivo) + sizeof(Journaling)));
     }
     return n;
 }
 
-void EXT2(SuperBloque super, time_t fecha){
+void EXT2(SuperBloque super, time_t fecha)
+{
     int startParticion = ParticionActual.start;
-    int startBI= startParticion+sizeof(SuperBloque); //Inicio Bitmap Inodos
-    int startBB= startBI+ numeroEstructuras; //Inicio Bitmap Bloques
-    int startI =startBB+numeroEstructuras*3; //Inicio Inodos
-    int startB= startI+ numeroEstructuras*sizeof(TablaInodos); //Inicio Bloques
+    int startBI = startParticion + sizeof(SuperBloque);            //Inicio Bitmap Inodos
+    int startBB = startBI + numeroEstructuras;                     //Inicio Bitmap Bloques
+    int startI = startBB + numeroEstructuras * 3;                  //Inicio Inodos
+    int startB = startI + numeroEstructuras * sizeof(TablaInodos); //Inicio Bloques
 
-    super.bm_inode_start=startBI;
-    super.bm_block_start=startBB;
-    super.inode_start=startI;
-    super.block_start=startB;
+    super.bm_inode_start = startBI;
+    super.bm_block_start = startBB;
+    super.inode_start = startI;
+    super.block_start = startB;
 
     struct TablaInodos Inodo;
-    Inodo.type='9';
+    Inodo.type = '9';
 
     struct BloqueCarpeta Carpeta;
-    Carpeta.content[0].inodo=666;
+    Carpeta.content[0].inodo = 666;
 
     //Comenzamos a escribir
     FILE *file2 = fopen(pathSA.c_str(), "rb+");
 
     fseek(file2, startParticion, 0);
     //Escribir Superbloque
-    fwrite(&super, sizeof(SuperBloque),1,file2);
+    fwrite(&super, sizeof(SuperBloque), 1, file2);
 
-    char aux ='0';
+    char aux = '0';
     //Escribir bitmap de inodos
-    fseek(file2, startBI,0);
-    for (int i=0; i<numeroEstructuras; i++){
+    fseek(file2, startBI, 0);
+    for (int i = 0; i < numeroEstructuras; i++)
+    {
         fwrite(&aux, sizeof(aux), 1, file2);
     }
 
     //Escribir bitmap de bloques
     fseek(file2, startBB, 0);
-    for(int i=0;i<3*numeroEstructuras; i++){
-        fwrite(&aux, sizeof(aux),1,file2);
+    for (int i = 0; i < 3 * numeroEstructuras; i++)
+    {
+        fwrite(&aux, sizeof(aux), 1, file2);
     }
 
     //Escribir Inodos
     fseek(file2, startI, 0);
-    for(int i=0;i<numeroEstructuras; i++){
-        fwrite(&Inodo, sizeof(TablaInodos),1,file2);
+    for (int i = 0; i < numeroEstructuras; i++)
+    {
+        fwrite(&Inodo, sizeof(TablaInodos), 1, file2);
     }
 
     //Escribir Bloques
     fseek(file2, startB, 0);
-    for(int i=0; i<3*numeroEstructuras; i++){
-        fwrite(&Carpeta,sizeof(BloqueCarpeta),1,file2);
+    for (int i = 0; i < 3 * numeroEstructuras; i++)
+    {
+        fwrite(&Carpeta, sizeof(BloqueCarpeta), 1, file2);
     }
-    
+
     fclose(file2);
-    cout<<"Partición Formateada!"<<endl;
+    cout << "Partición Formateada!" << endl;
 
     //Crear archivo Users.txt
 
     struct SuperBloque SB;
 
-    FILE *file = fopen(pathSA.c_str(),"rb");
+    FILE *file = fopen(pathSA.c_str(), "rb");
     fseek(file, startParticion, 0);
-    fread(&SB, sizeof(SuperBloque),1,file);
+    fread(&SB, sizeof(SuperBloque), 1, file);
     fclose(file);
 
-    cout<<" "<<endl;
-    cout<<"************************************"<<endl;
-    cout<<"*********DATOS DEL SISTEMA**********"<<endl;
-    cout<<"************************************"<<endl;
+    cout << " " << endl;
+    cout << "************************************" << endl;
+    cout << "*********DATOS DEL SISTEMA**********" << endl;
+    cout << "************************************" << endl;
 
-    if(SB.filesystem_type==2){
-        cout<<"Sistema: EXT2"<<endl;
-    }else{
-        cout<<"Sistema: EXT3"<<endl;
+    if (SB.filesystem_type == 2)
+    {
+        cout << "Sistema: EXT2" << endl;
     }
-    cout<<"Numero de Inodos: "<<SB.inodes_count<<endl;
-    cout<<"Numero de Bloques: "<<SB.blocks_count<<endl;
+    else
+    {
+        cout << "Sistema: EXT3" << endl;
+    }
+    cout << "Numero de Inodos: " << SB.inodes_count << endl;
+    cout << "Numero de Bloques: " << SB.blocks_count << endl;
     char fechas[25];
-    time_t current =SB.Mtime;
+    time_t current = SB.Mtime;
     ctime(&current);
-    stpcpy(fechas,ctime(&current));
-    cout<<"Fecha Montado: "<< string(fechas)<<endl;
-    cout<<"Start bitmap Bloques: "<< SB.block_start<<endl;
+    stpcpy(fechas, ctime(&current));
+    cout << "Fecha Montado: " << string(fechas) << endl;
+    cout << "Start bitmap Bloques: " << SB.block_start << endl;
 
     struct TablaInodos I;
-    I.uid=1;
-    I.gid=1;
-    I.size=0;
-    I.atime=fecha;
-    I.ctime=fecha;
-    I.mtime=fecha;
-    I.block[0]=0;
-    I.type='0';
-    I.perm=664; //Permisos de lectura y escritura para usuarios y grupos, sólo lectura para ajenos
+    I.uid = 1;
+    I.gid = 1;
+    I.size = 0;
+    I.atime = fecha;
+    I.ctime = fecha;
+    I.mtime = fecha;
+    I.block[0] = 0;
+    I.type = '0';
+    I.perm = 664; //Permisos de lectura y escritura para usuarios y grupos, sólo lectura para ajenos
 
     struct BloqueCarpeta Root;
-    strcpy(Root.content[0].name,".");
-    Root.content[0].inodo=0;
-    strcpy(Root.content[1].name,"..");
-    Root.content[1].inodo=0;
+    strcpy(Root.content[0].name, ".");
+    Root.content[0].inodo = 0;
+    strcpy(Root.content[1].name, "..");
+    Root.content[1].inodo = 0;
 
     //Archivo User.txt
-    strcpy(Root.content[2].name,"user.txt");
-    Root.content[2].inodo=1;
+    strcpy(Root.content[2].name, "user.txt");
+    Root.content[2].inodo = 1;
 
     struct TablaInodos I0_usuario; //Usuarios son únicos no importando el grupo
-    I0_usuario.uid=1;   //1 Activo, 0 eliminado
-    I0_usuario.gid=1;   //1 Activo, 0 eliminado
-    I0_usuario.size= 28; //Verificar si los saltos de línea cuentan sino son 26
-    I0_usuario.atime=fecha;
-    I0_usuario.ctime=fecha;
-    I0_usuario.mtime=fecha;
-    I0_usuario.block[0]=1;
-    I0_usuario.type='1';
-    I0_usuario.perm=664;
+    I0_usuario.uid = 1;            //1 Activo, 0 eliminado
+    I0_usuario.gid = 1;            //1 Activo, 0 eliminado
+    I0_usuario.size = 28;          //Verificar si los saltos de línea cuentan sino son 26
+    I0_usuario.atime = fecha;
+    I0_usuario.ctime = fecha;
+    I0_usuario.mtime = fecha;
+    I0_usuario.block[0] = 1;
+    I0_usuario.type = '1';
+    I0_usuario.perm = 664;
 
     //Guardando contenido de archivo inicial
     struct BloqueArchivo Archivo_user;
-    strcpy(Archivo_user.content,"1,g,root\n1,u,root,root,123\n");
+    strcpy(Archivo_user.content, "1,g,root\n1,u,root,root,123\n");
 
     //Guardando en disco
-    FILE *archivo = fopen(pathSA.c_str(),"rb+");
-    fseek(archivo,startBI,0);
-    char c='1';
-    fwrite(&c, sizeof(c),1,archivo);
-    fwrite(&c,sizeof(c),1,archivo);
-    fseek(archivo,startBB,0);
-    fwrite(&c,sizeof(c),1,archivo);
-    fwrite(&c,sizeof(c),1,archivo);
+    FILE *archivo = fopen(pathSA.c_str(), "rb+");
+    fseek(archivo, startBI, 0);
+    char c = '1';
+    fwrite(&c, sizeof(c), 1, archivo);
+    fwrite(&c, sizeof(c), 1, archivo);
+    fseek(archivo, startBB, 0);
+    fwrite(&c, sizeof(c), 1, archivo);
+    fwrite(&c, sizeof(c), 1, archivo);
 
     //Actualizando Tabla Inodos y Bloques
-    fseek(archivo,startI,0);
-    fwrite(&I,sizeof(TablaInodos),1,archivo);
-    fwrite(&I0_usuario,sizeof(TablaInodos),1,archivo);
+    fseek(archivo, startI, 0);
+    fwrite(&I, sizeof(TablaInodos), 1, archivo);
+    fwrite(&I0_usuario, sizeof(TablaInodos), 1, archivo);
 
-    fseek(archivo,startB,0);
-    fwrite(&Root,sizeof(BloqueCarpeta),1,archivo);
-    fwrite(&Archivo_user,sizeof(BloqueArchivo),1,archivo);
+    fseek(archivo, startB, 0);
+    fwrite(&Root, sizeof(BloqueCarpeta), 1, archivo);
+    fwrite(&Archivo_user, sizeof(BloqueArchivo), 1, archivo);
     fclose(archivo);
 }
 
-void EXT3(SuperBloque super, time_t fecha){
+void EXT3(SuperBloque super, time_t fecha)
+{
     int startParticion = ParticionActual.start;
-    int startBI= startParticion+sizeof(SuperBloque)+numeroEstructuras*sizeof(Journaling); //Inicio Bitmap Inodos
-    int startBB= startBI+ numeroEstructuras; //Inicio Bitmap Bloques
-    int startI =startBB+numeroEstructuras*3; //Inicio Inodos
-    int startB= startI+ numeroEstructuras*sizeof(TablaInodos); //Inicio Bloques
+    int startBI = startParticion + sizeof(SuperBloque) + numeroEstructuras * sizeof(Journaling); //Inicio Bitmap Inodos
+    int startBB = startBI + numeroEstructuras;                                                   //Inicio Bitmap Bloques
+    int startI = startBB + numeroEstructuras * 3;                                                //Inicio Inodos
+    int startB = startI + numeroEstructuras * sizeof(TablaInodos);                               //Inicio Bloques
 
-    super.bm_inode_start=startBI;
-    super.bm_block_start=startBB;
-    super.inode_start=startI;
-    super.block_start=startB;
+    super.bm_inode_start = startBI;
+    super.bm_block_start = startBB;
+    super.inode_start = startI;
+    super.block_start = startB;
 
     struct TablaInodos Inodo;
-    Inodo.type='9';
+    Inodo.type = '9';
 
     struct BloqueCarpeta Carpeta;
-    Carpeta.content[0].inodo=666;
+    Carpeta.content[0].inodo = 666;
 
     struct Journaling Journal;
-    Journal.tipo='9';
+    Journal.tipo = '9';
 
     //Comenzamos a escribir
     FILE *file2 = fopen(pathSA.c_str(), "rb+");
 
     fseek(file2, startParticion, 0);
     //Escribir Superbloque
-    fwrite(&super, sizeof(SuperBloque),1,file2);
+    fwrite(&super, sizeof(SuperBloque), 1, file2);
 
     //Escribir Journals
-    for(int i=0; i<numeroEstructuras; i++){
+    for (int i = 0; i < numeroEstructuras; i++)
+    {
         fwrite(&Journal, sizeof(Journaling), 1, file2);
     }
 
-    char aux ='0';
+    char aux = '0';
     //Escribir bitmap de inodos
-    fseek(file2, startBI,0);
-    for (int i=0; i<numeroEstructuras; i++){
+    fseek(file2, startBI, 0);
+    for (int i = 0; i < numeroEstructuras; i++)
+    {
         fwrite(&aux, sizeof(aux), 1, file2);
     }
 
     //Escribir bitmap de bloques
     fseek(file2, startBB, 0);
-    for(int i=0;i<3*numeroEstructuras; i++){
-        fwrite(&aux, sizeof(aux),1,file2);
+    for (int i = 0; i < 3 * numeroEstructuras; i++)
+    {
+        fwrite(&aux, sizeof(aux), 1, file2);
     }
 
     //Escribir Inodos
     fseek(file2, startI, 0);
-    for(int i=0;i<numeroEstructuras; i++){
-        fwrite(&Inodo, sizeof(TablaInodos),1,file2);
+    for (int i = 0; i < numeroEstructuras; i++)
+    {
+        fwrite(&Inodo, sizeof(TablaInodos), 1, file2);
     }
 
     //Escribir Bloques
     fseek(file2, startB, 0);
-    for(int i=0; i<3*numeroEstructuras; i++){
-        fwrite(&Carpeta,sizeof(BloqueCarpeta),1,file2);
+    for (int i = 0; i < 3 * numeroEstructuras; i++)
+    {
+        fwrite(&Carpeta, sizeof(BloqueCarpeta), 1, file2);
     }
-    
+
     fclose(file2);
-    cout<<"Partición Formateada!"<<endl;
+    cout << "Partición Formateada!" << endl;
 
     //Crear archivo Users.txt
 
     struct SuperBloque SB;
 
-    FILE *file = fopen(pathSA.c_str(),"rb");
+    FILE *file = fopen(pathSA.c_str(), "rb");
     fseek(file, startParticion, 0);
-    fread(&SB, sizeof(SuperBloque),1,file);
+    fread(&SB, sizeof(SuperBloque), 1, file);
     fclose(file);
-    cout<<" "<<endl;
-    cout<<"************************************"<<endl;
-    cout<<"*********DATOS DEL SISTEMA**********"<<endl;
-    cout<<"************************************"<<endl;
+    cout << " " << endl;
+    cout << "************************************" << endl;
+    cout << "*********DATOS DEL SISTEMA**********" << endl;
+    cout << "************************************" << endl;
 
-    if(SB.filesystem_type==2){
-        cout<<"Sistema: EXT2"<<endl;
-    }else{
-        cout<<"Sistema: EXT3"<<endl;
+    if (SB.filesystem_type == 2)
+    {
+        cout << "Sistema: EXT2" << endl;
     }
-    cout<<"Numero de Inodos: "<<SB.inodes_count<<endl;
-    cout<<"Numero de Bloques: "<<SB.blocks_count<<endl;
+    else
+    {
+        cout << "Sistema: EXT3" << endl;
+    }
+    cout << "Numero de Inodos: " << SB.inodes_count << endl;
+    cout << "Numero de Bloques: " << SB.blocks_count << endl;
     char fechas[25];
-    time_t current =SB.Mtime;
+    time_t current = SB.Mtime;
     ctime(&current);
-    stpcpy(fechas,ctime(&current));
-    cout<<"Fecha Montado: "<< string(fechas)<<endl;
-    cout<<"Start bitmap Bloques: "<< SB.block_start<<endl;
+    stpcpy(fechas, ctime(&current));
+    cout << "Fecha Montado: " << string(fechas) << endl;
+    cout << "Start bitmap Bloques: " << SB.block_start << endl;
 
     struct TablaInodos I;
-    I.uid=1;
-    I.gid=1;
-    I.size=0;
-    I.atime=fecha;
-    I.ctime=fecha;
-    I.mtime=fecha;
-    I.block[0]=0;
-    I.type='0';
-    I.perm=664; //Permisos de lectura y escritura para usuarios y grupos, sólo lectura para ajenos
+    I.uid = 1;
+    I.gid = 1;
+    I.size = 0;
+    I.atime = fecha;
+    I.ctime = fecha;
+    I.mtime = fecha;
+    I.block[0] = 0;
+    I.type = '0';
+    I.perm = 664; //Permisos de lectura y escritura para usuarios y grupos, sólo lectura para ajenos
 
     struct Journaling JRoot;
     stpcpy(JRoot.contenido, "carpetaRoot");
-    strcpy(JRoot.path,"/");
-    JRoot.tipo=0;
-    strcpy(JRoot.operacion,"mkdir");
-    JRoot.log_fecha=fecha;
-    JRoot.InodoAfectado=0;
+    strcpy(JRoot.path, "/");
+    JRoot.tipo = 0;
+    strcpy(JRoot.operacion, "mkdir");
+    JRoot.log_fecha = fecha;
+    JRoot.InodoAfectado = 0;
 
     struct BloqueCarpeta Root;
-    strcpy(Root.content[0].name,".");
-    Root.content[0].inodo=0;
-    strcpy(Root.content[1].name,"..");
-    Root.content[1].inodo=0;
+    strcpy(Root.content[0].name, ".");
+    Root.content[0].inodo = 0;
+    strcpy(Root.content[1].name, "..");
+    Root.content[1].inodo = 0;
 
     //Archivo User.txt
-    strcpy(Root.content[2].name,"user.txt");
-    Root.content[2].inodo=1;
+    strcpy(Root.content[2].name, "user.txt");
+    Root.content[2].inodo = 1;
 
     struct TablaInodos I0_usuario; //Usuarios son únicos no importando el grupo
-    I0_usuario.uid=1;   //1 Activo, 0 eliminado
-    I0_usuario.gid=1;   //1 Activo, 0 eliminado
-    I0_usuario.size= 0;
-    I0_usuario.atime=fecha;
-    I0_usuario.ctime=fecha;
-    I0_usuario.mtime=fecha;
-    I0_usuario.block[0]=1;
-    I0_usuario.type='1';
-    I0_usuario.perm=664;
+    I0_usuario.uid = 1;            //1 Activo, 0 eliminado
+    I0_usuario.gid = 1;            //1 Activo, 0 eliminado
+    I0_usuario.size = 0;
+    I0_usuario.atime = fecha;
+    I0_usuario.ctime = fecha;
+    I0_usuario.mtime = fecha;
+    I0_usuario.block[0] = 1;
+    I0_usuario.type = '1';
+    I0_usuario.perm = 664;
 
     //Guardando contenido de archivo inicial
     struct BloqueArchivo Archivo_user;
-    strcpy(Archivo_user.content,"1,g,root\n1,u,root,root,123\n");
+    strcpy(Archivo_user.content, "1,g,root\n1,u,root,root,123\n");
 
     //Guardando en Journaling
     struct Journaling J;
     strcpy(J.contenido, "1,g,root\n1,u,root,root,123\n");
     strcpy(J.path, "/user.txt");
-    J.size=28;
-    J.tipo=1;
-    strcpy(J.operacion,"make");
-    J.log_fecha=fecha;
-    J.InodoAfectado=1;
-    J.size=sizeof(BloqueArchivo);
-
+    J.size = 28;
+    J.tipo = 1;
+    strcpy(J.operacion, "make");
+    J.log_fecha = fecha;
+    J.InodoAfectado = 1;
+    J.size = sizeof(BloqueArchivo);
 
     //Guardando en disco
-    FILE *archivo = fopen(pathSA.c_str(),"rb+");
-    fseek(archivo,startBI,0);
-    char c='1';
-    fwrite(&c, sizeof(c),1,archivo);
-    fwrite(&c,sizeof(c),1,archivo);
-    fseek(archivo,startBB,0);
-    fwrite(&c,sizeof(c),1,archivo);
-    fwrite(&c,sizeof(c),1,archivo);
+    FILE *archivo = fopen(pathSA.c_str(), "rb+");
+    fseek(archivo, startBI, 0);
+    char c = '1';
+    fwrite(&c, sizeof(c), 1, archivo);
+    fwrite(&c, sizeof(c), 1, archivo);
+    fseek(archivo, startBB, 0);
+    fwrite(&c, sizeof(c), 1, archivo);
+    fwrite(&c, sizeof(c), 1, archivo);
 
     //Actualizando Tabla Inodos y Bloques
-    fseek(archivo,startI,0);
-    fwrite(&I,sizeof(TablaInodos),1,archivo);
-    fwrite(&I0_usuario,sizeof(TablaInodos),1,archivo);
+    fseek(archivo, startI, 0);
+    fwrite(&I, sizeof(TablaInodos), 1, archivo);
+    fwrite(&I0_usuario, sizeof(TablaInodos), 1, archivo);
 
-    fseek(archivo,startB,0);
-    fwrite(&Root,sizeof(BloqueCarpeta),1,archivo);
-    fwrite(&Archivo_user,sizeof(BloqueArchivo),1,archivo);
+    fseek(archivo, startB, 0);
+    fwrite(&Root, sizeof(BloqueCarpeta), 1, archivo);
+    fwrite(&Archivo_user, sizeof(BloqueArchivo), 1, archivo);
 
     //Escribiendo Journals
-    fseek(archivo, startParticion+sizeof(SuperBloque),0);
-    fwrite(&JRoot,sizeof(Journaling),1, archivo);
-    fwrite(&J,sizeof(Journaling),1,archivo);
+    fseek(archivo, startParticion + sizeof(SuperBloque), 0);
+    fwrite(&JRoot, sizeof(Journaling), 1, archivo);
+    fwrite(&J, sizeof(Journaling), 1, archivo);
     fclose(archivo);
 }
 
-void FormatearPE(string tipoFormatear){
+void FormatearPE(string tipoFormatear)
+{
 
     time_t current_time;
-    current_time=time(NULL);
+    current_time = time(NULL);
 
     struct SuperBloque super;
 
-    super.inodes_count=numeroEstructuras;
-    super.blocks_count=3* numeroEstructuras;
-    super.free_blocks_count=3*numeroEstructuras;
-    super.free_inodes_count=numeroEstructuras;
-    super.Mtime=current_time;
-    super.Umtime=current_time;
-    super.mnt_count=1;
+    super.inodes_count = numeroEstructuras;
+    super.blocks_count = 3 * numeroEstructuras;
+    super.free_blocks_count = 3 * numeroEstructuras;
+    super.free_inodes_count = numeroEstructuras;
+    super.Mtime = current_time;
+    super.Umtime = current_time;
+    super.mnt_count = 1;
 
-    if(tipoFormatear=="2fs"){
-        super.filesystem_type=2;
+    if (tipoFormatear == "2fs")
+    {
+        super.filesystem_type = 2;
         //Formatear como Ext2
-        EXT2(super,current_time);
-    }else{
-        super.filesystem_type=3;
-        //Formatear como Ext3
-        EXT3(super,current_time);
+        EXT2(super, current_time);
     }
-
+    else
+    {
+        super.filesystem_type = 3;
+        //Formatear como Ext3
+        EXT3(super, current_time);
+    }
 }
 
-
 //---------------------------------------------------------------COMANDOS---------------------------------------------------------------------
+
 void mkfs(string id, string type, string fs)
 {
     TLista aux = getElemento(listaMount, id);
     if (aux != nullptr)
     {
-        typeFormat=fs;
-        type=type;
-        pathSA=aux->path;
-        mbr = ObtenerMBR(pathSA);        
-        ParticionActual = ObtenerParticionPE(aux->name, aux->path);
-        numeroEstructuras= ObrenerN(fs);
-        FormatearPE(typeFormat);
 
+        typeFormat = fs;
+        type = type;
+        pathSA = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                if (tipo == "p")
+                {
+                    ParticionActual = ObtenerParticionPE(aux->name, aux->path);
+                    numeroEstructuras = ObrenerN(fs);
+                    FormatearPE(typeFormat);
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
     }
     else
-    {        
+    {
         cout << "Error, esta particion no ha sido montada!" << endl;
     }
 }
+
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//--------------------------------------------------------GRUPOS Y USUARIOS--------------------------------------------
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+//*********************************************************************************************************************
+
+struct SuperBloque *superB = new struct SuperBloque;
+string pathSB="";
+struct partition ParticionActualSB;
+
+string ReporteSB(){
+    char fecha[25];
+    string Imprimir="digraph g{\n";
+    
+    Imprimir+="\t     nodo [ shape=plaintext label=<\n";
+    Imprimir+="\t \t        <table border='1' cellborder='1'>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t               <td colspan=\"2\" >Super Bloque</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t               <td>s_inodes_count</td>\n";
+    Imprimir+="\t \t \t \t               <td>"+to_string(superB->inodes_count) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t               <td>s_blocks_count</td>\n";
+    Imprimir+="\t \t \t \t               <td>"+to_string(superB->blocks_count) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t               <td>s_free_blocks_count</td>\n";
+    Imprimir+="\t \t \t \t               <td>"+to_string(superB->free_blocks_count) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_free_inodes_count</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->free_inodes_count) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+
+    time_t current_time = superB->Mtime;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir+="\t \t \t \t                <td>s_mtime</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+string(fecha) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    current_time=superB->Umtime;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir+="\t \t \t \t                <td>s_umtime</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+string(fecha) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";    
+    Imprimir+="\t \t \t \t                <td>s_mnt_count</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->mnt_count) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_magic</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->magic) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_inode_size</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->inode_size) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_block_size</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_size) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_first_ino</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->fist_ino) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_first_blo</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->first_blo)+"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_bm_inode_start</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->bm_inode_start) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_bm_block_start</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_start) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_inode_start</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->inode_start) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t \t            <tr>\n";
+    Imprimir+="\t \t \t \t                <td>s_block_start</td>\n";
+    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_start) +"</td>\n";
+    Imprimir+="\t \t \t            </tr>\n";
+    Imprimir+="\t \t        </table>\n";
+    Imprimir+="\t     >];\n";
+    Imprimir+="}\n";
+    return Imprimir;
+
+}
+
+string ReporteArbol(){
+    string Imprimir ="";
+    return Imprimir;    
+}
+//OBTIENE LOS DATOS DEL MBR, NECESITA RUTA
+struct SuperBloque *ObtenerSuperBloque()
+{
+    FILE *arch;
+    arch = fopen(pathSB.c_str(), "rb");
+    struct SuperBloque *newSB = new struct SuperBloque;
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, ParticionActualSB.start, SEEK_SET); //Seek_set o "0", es desede el inicio del archivo
+    fread(newSB, sizeof(SuperBloque), 1, arch);
+    fclose(arch);
+
+    return newSB;
+}
+
+void repTree(string path, string id){
+    TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+
+        pathSB = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                if (tipo == "p")
+                {
+                    ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
+                    superB=ObtenerSuperBloque();
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
+
+void repSb(string path, string id){
+    TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+
+        pathSB = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = Chart_String( mbr->PARTICION[i].type,1);
+                if (tipo == "p")
+                {
+                    ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
+                    superB=ObtenerSuperBloque();
+                    string Contenido= ReporteSB();
+                    Graficar(path,"sb.dot", Contenido);
+                    cout<<"Grafica Generada!"<<endl;
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
+//------------------------------------------------COMANDOS--------------------------------------------------
+void login(string usuario, string password, string id)
+{
+    TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+
+        pathSB = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = mbr->PARTICION[i].type;
+                if (tipo == "p")
+                {
+                    ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
+                    superB=ObtenerSuperBloque();
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
+
 #endif

@@ -505,12 +505,15 @@ void Mount()
             {
                 mount(path, name);
                 fclose(arch);
-            } else
+            }
+            else
             {
                 cout << "Error, archivo no encontrado!" << endl;
             }
-        }else{
-            cout<<"Error, faltan atributos necesarios!"<<endl;
+        }
+        else
+        {
+            cout << "Error, faltan atributos necesarios!" << endl;
         }
     }
     catch (const std::exception &e)
@@ -537,6 +540,129 @@ void Unmount()
     else
     {
         cout << "Falta el atributo id" << endl;
+    }
+}
+
+void Mkfs()
+{
+    string id = "";
+    string type = "";
+    string fs = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+            if (cmd == "-id")
+            {
+                indice++;
+                id = CMD[indice];
+            }
+            else if (cmd == "-type")
+            {
+                indice++;
+                type = CMD[indice];
+            }
+            else if (cmd == "-fs")
+            {
+                indice++;
+                fs = CMD[indice];
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+            }
+            indice++;
+        }
+        if (id != "")
+        {
+            transform(id.begin(), id.end(), id.begin(), ::tolower);
+            transform(type.begin(), type.end(), type.begin(), ::tolower);
+            transform(fs.begin(), fs.end(), fs.begin(), ::tolower);
+            if (type == "")
+            {
+                type = "full";
+            }
+            if (fs == "")
+            {
+                fs = "2fs";
+            }
+            mkfs(id, type, fs);
+        }
+        else
+        {
+            cout << "Error, falta id" << endl;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
+    }
+}
+
+void Login()
+{
+    string usuario = "";
+    string password = "";
+    string id = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+            if (cmd == "-usuario")
+            {
+                indice++;
+                usuario = CMD[indice];
+            }
+            else if (cmd == "-password")
+            {
+                indice++;
+                password = CMD[indice];
+            }
+            else if (cmd == "-id")
+            {
+                indice++;
+                id = CMD[indice];
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+            }
+            indice++;
+        }
+        if (usuario != "" && password != "" && id != "")
+        {
+            transform(id.begin(), id.end(), id.begin(), ::tolower);
+
+            login(usuario, password, id);
+        }
+        else
+        {
+            cout << "Error, falta id" << endl;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
     }
 }
 
@@ -574,11 +700,12 @@ void Rep()
             {
                 indice++;
                 ruta = CMD[indice];
-            }else if (cmd[0] == '#')
+            }
+            else if (cmd[0] == '#')
             {
                 //Comentario
                 //cout << "Comentario" << endl;
-                indice=(CMD.size()-1);
+                indice = (CMD.size() - 1);
             }
             else
             {
@@ -623,11 +750,11 @@ void Rep()
             }
             else if (name == "tree")
             {
-                //repTree(path, id);
+                repTree(path, id);
             }
             else if (name == "sb")
             {
-                //repSb(path, id);
+                repSb(path, id);
             }
             else if (name == "file")
             {
@@ -653,65 +780,6 @@ void Rep()
     }
 }
 
-void Mkfs(){
-    string id = "";
-    string type = "";
-    string fs="";
-    try
-    {
-        int CMDsize = CMD.size();
-        while (indice < CMDsize)
-        {
-
-            string cmd = CMD[indice];
-            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
-            if (cmd == "-id")
-            {
-                indice++;
-                id = CMD[indice];
-            }
-            else if (cmd == "-type")
-            {
-                indice++;
-                type = CMD[indice];
-            }else if (cmd == "-fs")
-            {
-                indice++;
-                fs = CMD[indice];
-            }
-            else if (cmd[0] == '#')
-            {
-                //Comentario
-                //cout << "Comentario" << endl;
-                indice = (CMD.size() - 1);
-            }
-            else
-            {
-                cout << "Error, atributo no identificado para este comando" << endl;
-            }
-            indice++;
-        }
-        if (id != "")
-        {            
-            transform(id.begin(), id.end(), id.begin(), ::tolower);
-            transform(type.begin(), type.end(), type.begin(), ::tolower);
-            transform(fs.begin(), fs.end(), fs.begin(), ::tolower);
-            if(type==""){
-                type="full";
-            }
-            if(fs==""){
-                fs="2fs";
-            }
-            mkfs(id,type, fs);   
-        }else{
-            cout<<"Error, falta id"<<endl;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
-    }
-}
 
 //Aquí va la el listado de comandos que se pueden ejecutar
 void Ejecutar(vector<string> vector)
@@ -765,6 +833,7 @@ void Ejecutar(vector<string> vector)
     else if (cmd == "login")
     {
         indice++;
+        Login();
         indice = 0;
     }
     else if (cmd == "logout")
