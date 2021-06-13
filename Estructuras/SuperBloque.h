@@ -35,8 +35,8 @@ struct SuperBloque
     int blocks_count;
     int free_blocks_count;
     int free_inodes_count;
-    time_t mtime;  //Ultima fecha montado
-    time_t umtime; //Ultima fecha desmontado
+    time_t  Mtime;  //Ultima fecha montado
+    time_t  Umtime; //Ultima fecha desmontado
     int mnt_count; //Cuantas veces se ha montado el sistema
     int magic = 0xEF53;
     int inode_size = sizeof(TablaInodos);

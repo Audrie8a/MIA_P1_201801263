@@ -34,7 +34,7 @@ public:
 //*********************************************************************************************************************
 //*********************************************************************************************************************
 //*********************************************************************************************************************
-//--------------------------------------------------------MANEJO DE ARCHIVOS ------------------------------------------
+//-------------------------------------------------------DISCOS, PARTICIONES ------------------------------------------
 //*********************************************************************************************************************
 //*********************************************************************************************************************
 //*********************************************************************************************************************
@@ -2004,6 +2004,7 @@ int ObrenerN(string tipoSis){
     }
     return n;
 }
+
 void EXT2(SuperBloque super, time_t fecha){
     int startParticion = ParticionActual.start;
     int startBI= startParticion+sizeof(SuperBloque); //Inicio Bitmap Inodos
@@ -2023,41 +2024,122 @@ void EXT2(SuperBloque super, time_t fecha){
     Carpeta.content[0].inodo=666;
 
     //Comenzamos a escribir
-    FILE *file = fopen(pathSA.c_str(), "rb+");
+    FILE *file2 = fopen(pathSA.c_str(), "rb+");
 
-    fseek(file, startParticion, 0);
+    fseek(file2, startParticion, 0);
     //Escribir Superbloque
-    fwrite(&super, sizeof(SuperBloque),1,file);
+    fwrite(&super, sizeof(SuperBloque),1,file2);
 
     char aux ='0';
     //Escribir bitmap de inodos
-    fseek(file, startBI,0);
+    fseek(file2, startBI,0);
     for (int i=0; i<numeroEstructuras; i++){
-        fwrite(&aux, sizeof(aux), 1, file);
+        fwrite(&aux, sizeof(aux), 1, file2);
     }
 
     //Escribir bitmap de bloques
-    fseek(file, startBB, 0);
+    fseek(file2, startBB, 0);
     for(int i=0;i<3*numeroEstructuras; i++){
-        fwrite(&aux, sizeof(aux),1,file);
+        fwrite(&aux, sizeof(aux),1,file2);
     }
 
     //Escribir Inodos
-    fseek(file, startI, 0);
+    fseek(file2, startI, 0);
     for(int i=0;i<numeroEstructuras; i++){
-        fwrite(&Inodo, sizeof(TablaInodos),1,file);
+        fwrite(&Inodo, sizeof(TablaInodos),1,file2);
     }
 
     //Escribir Bloques
-    fseek(file, startB, 0);
+    fseek(file2, startB, 0);
     for(int i=0; i<3*numeroEstructuras; i++){
-        fwrite(&Carpeta,sizeof(BloqueCarpeta),1,file);
+        fwrite(&Carpeta,sizeof(BloqueCarpeta),1,file2);
     }
     
-    fclose(file);
+    fclose(file2);
     cout<<"Partición Formateada!"<<endl;
 
+    //Crear archivo Users.txt
 
+    struct SuperBloque SB;
+
+    FILE *file = fopen(pathSA.c_str(),"rb");
+    fseek(file, startParticion, 0);
+    fread(&SB, sizeof(SuperBloque),1,file);
+    fclose(file);
+
+    cout<<"************************************"<<endl;
+    cout<<"*********DATOS DEL SISTEMA**********"<<endl;
+    cout<<"************************************"<<endl;
+
+    if(SB.filesystem_type==2){
+        cout<<"Sistema: EXT2"<<endl;
+    }else{
+        cout<<"Sistema: EXT3"<<endl;
+    }
+    cout<<"Numero de Inodos: "<<SB.inodes_count<<endl;
+    cout<<"Numero de Bloques: "<<SB.blocks_count<<endl;
+    char fechas[25];
+    time_t current =SB.Mtime;
+    ctime(&current);
+    stpcpy(fechas,ctime(&current));
+    cout<<"Fecha Montado: "<< string(fechas)<<endl;
+    cout<<"Start bitmap Bloques: "<< SB.block_start<<endl;
+
+    struct TablaInodos I;
+    I.uid=1;
+    I.gid=1;
+    I.size=0;
+    I.atime=fecha;
+    I.ctime=fecha;
+    I.mtime=fecha;
+    I.block[0]=0;
+    I.type='0';
+    I.perm=664; //Permisos de lectura y escritura para usuarios y grupos, sólo lectura para ajenos
+
+    struct BloqueCarpeta Root;
+    strcpy(Root.content[0].name,".");
+    Root.content[0].inodo=0;
+    strcpy(Root.content[1].name,"..");
+    Root.content[1].inodo=0;
+
+    //Archivo User.txt
+    strcpy(Root.content[2].name,"user.txt");
+    Root.content[2].inodo=1;
+
+    struct TablaInodos I0_usuario; //Usuarios son únicos no importando el grupo
+    I0_usuario.uid=1;   //1 Activo, 0 eliminado
+    I0_usuario.gid=1;   //1 Activo, 0 eliminado
+    I0_usuario.size= 28; //Verificar si los saltos de línea cuentan sino son 26
+    I0_usuario.atime=fecha;
+    I0_usuario.ctime=fecha;
+    I0_usuario.mtime=fecha;
+    I0_usuario.block[0]=1;
+    I0_usuario.type='1';
+    I0_usuario.perm=664;
+
+    //Guardando contenido de archivo inicial
+    struct BloqueArchivo Archivo_user;
+    strcpy(Archivo_user.content,"1,g,root\n1,u,root,root,123\n");
+
+    //Guardando en disco
+    FILE *archivo = fopen(pathSA.c_str(),"rb+");
+    fseek(archivo,startBI,0);
+    char c='1';
+    fwrite(&c, sizeof(c),1,archivo);
+    fwrite(&c,sizeof(c),1,archivo);
+    fseek(archivo,startBB,0);
+    fwrite(&c,sizeof(c),1,archivo);
+    fwrite(&c,sizeof(c),1,archivo);
+
+    //Actualizando Tabla Inodos y Bloques
+    fseek(archivo,startI,0);
+    fwrite(&I,sizeof(TablaInodos),1,archivo);
+    fwrite(&I0_usuario,sizeof(TablaInodos),1,archivo);
+
+    fseek(archivo,startB,0);
+    fwrite(&Root,sizeof(BloqueCarpeta),1,archivo);
+    fwrite(&Archivo_user,sizeof(BloqueArchivo),1,archivo);
+    fclose(archivo);
 }
 
 void EXT3(SuperBloque super, time_t fecha){
@@ -2075,8 +2157,8 @@ void FormatearPE(string tipoFormatear){
     super.blocks_count=3* numeroEstructuras;
     super.free_blocks_count=3*numeroEstructuras;
     super.free_inodes_count=numeroEstructuras;
-    super.mtime=current_time;
-    super.umtime=current_time;
+    super.Mtime=current_time;
+    super.Umtime=current_time;
     super.mnt_count=1;
 
     if(tipoFormatear=="2fs"){
@@ -2098,8 +2180,8 @@ void mkfs(string id, string type, string fs)
     TLista aux = getElemento(listaMount, id);
     if (aux != nullptr)
     {
-        typeFormat=type;
-        type=fs;
+        typeFormat=fs;
+        type=type;
         pathSA=aux->path;
         mbr = ObtenerMBR(pathSA);        
         ParticionActual = ObtenerParticionPE(aux->name, aux->path);
