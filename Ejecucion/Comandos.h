@@ -6,6 +6,7 @@
 #include <time.h>
 #include "../Estructuras/MBR.h"
 #include "../Estructuras/EBR.h"
+#include "../Estructuras/SuperBloque.h"
 #include <algorithm>
 using namespace std;
 
@@ -1970,9 +1971,15 @@ void mkdisk(int size, string f, string u, string path)
 //*********************************************************************************************************************
 //*********************************************************************************************************************
 
-partition ObtenerParticionPE(string name)
+int numeroEstructuras; //---------------------------------------------------------Aquí comienzan comandos del MKFS
+string typeFormat; //fs
+string type;    //full o fast
+struct partition ParticionActual;
+string pathSA;
+
+struct partition ObtenerParticionPE(string name,string path)
 {
-    struct partition aux = nullptr;
+    struct partition aux;
     bool existe = false;
     for (int i = 0; i < 4; i++)
     {
@@ -1985,41 +1992,104 @@ partition ObtenerParticionPE(string name)
         }
     }
 
-    if (!existe)
-    { //No está en particiones primarias o extendidas
-
-        bool extendida = false;
-        for (int i = 0; i < 4; i++)
-        {
-            aux = mbr->PARTICION[i];
-            if (Chart_String(aux.type, 1) == "e")
-            {
-                struct partition Ext = aux;
-                ebr = ObtenerEBR(path, Ext.start);
-                EBR *ebrAux = new struct EBR;
-
-                do
-                {
-                    string n = ebr->nombre;
-                    if (n == name)
-                    {
-
-                        break;
-                    }
-
-                    ebrAux = ebr;
-                    if (ebrAux->next != -1)
-                    {
-                        ebr = ObtenerEBR(path, ebr->next);
-                    }
-                } while (ebrAux->next != -1);
-            }
-        }
-    }
-
     return aux;
 }
 
+int ObrenerN(string tipoSis){
+    int n=0;
+    if(tipoSis=="2fs"){
+        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque))/(4 + sizeof(TablaInodos) + 3*sizeof(BloqueArchivo)));
+    }else{
+        n = static_cast<int>((ParticionActual.size - sizeof(SuperBloque))/(4 + sizeof(TablaInodos) + 3*sizeof(BloqueArchivo) + sizeof(Journaling)));
+    }
+    return n;
+}
+void EXT2(SuperBloque super, time_t fecha){
+    int startParticion = ParticionActual.start;
+    int startBI= startParticion+sizeof(SuperBloque); //Inicio Bitmap Inodos
+    int startBB= startBI+ numeroEstructuras; //Inicio Bitmap Bloques
+    int startI =startBB+numeroEstructuras*3; //Inicio Inodos
+    int startB= startI+ numeroEstructuras*sizeof(TablaInodos); //Inicio Bloques
+
+    super.bm_inode_start=startBI;
+    super.bm_block_start=startBB;
+    super.inode_start=startI;
+    super.block_start=startB;
+
+    struct TablaInodos Inodo;
+    Inodo.type='9';
+
+    struct BloqueCarpeta Carpeta;
+    Carpeta.content[0].inodo=666;
+
+    //Comenzamos a escribir
+    FILE *file = fopen(pathSA.c_str(), "rb+");
+
+    fseek(file, startParticion, 0);
+    //Escribir Superbloque
+    fwrite(&super, sizeof(SuperBloque),1,file);
+
+    char aux ='0';
+    //Escribir bitmap de inodos
+    fseek(file, startBI,0);
+    for (int i=0; i<numeroEstructuras; i++){
+        fwrite(&aux, sizeof(aux), 1, file);
+    }
+
+    //Escribir bitmap de bloques
+    fseek(file, startBB, 0);
+    for(int i=0;i<3*numeroEstructuras; i++){
+        fwrite(&aux, sizeof(aux),1,file);
+    }
+
+    //Escribir Inodos
+    fseek(file, startI, 0);
+    for(int i=0;i<numeroEstructuras; i++){
+        fwrite(&Inodo, sizeof(TablaInodos),1,file);
+    }
+
+    //Escribir Bloques
+    fseek(file, startB, 0);
+    for(int i=0; i<3*numeroEstructuras; i++){
+        fwrite(&Carpeta,sizeof(BloqueCarpeta),1,file);
+    }
+    
+    fclose(file);
+    cout<<"Partición Formateada!"<<endl;
+
+
+}
+
+void EXT3(SuperBloque super, time_t fecha){
+
+}
+
+void FormatearPE(string tipoFormatear){
+
+    time_t current_time;
+    current_time=time(NULL);
+
+    struct SuperBloque super;
+
+    super.inodes_count=numeroEstructuras;
+    super.blocks_count=3* numeroEstructuras;
+    super.free_blocks_count=3*numeroEstructuras;
+    super.free_inodes_count=numeroEstructuras;
+    super.mtime=current_time;
+    super.umtime=current_time;
+    super.mnt_count=1;
+
+    if(tipoFormatear=="2fs"){
+        super.filesystem_type=2;
+        //Formatear como Ext2
+        EXT2(super,current_time);
+    }else{
+        super.filesystem_type=3;
+        //Formatear como Ext3
+        EXT3(super,current_time);
+    }
+
+}
 
 
 //---------------------------------------------------------------COMANDOS---------------------------------------------------------------------
@@ -2028,11 +2098,17 @@ void mkfs(string id, string type, string fs)
     TLista aux = getElemento(listaMount, id);
     if (aux != nullptr)
     {
-        mbr = ObtenerMBR(aux->path);
-        struct partition Particion = ObtenerParticion(aux->name);
+        typeFormat=type;
+        type=fs;
+        pathSA=aux->path;
+        mbr = ObtenerMBR(pathSA);        
+        ParticionActual = ObtenerParticionPE(aux->name, aux->path);
+        numeroEstructuras= ObrenerN(fs);
+        FormatearPE(typeFormat);
+
     }
-    elxe
-    {
+    else
+    {        
         cout << "Error, esta particion no ha sido montada!" << endl;
     }
 }

@@ -712,6 +712,7 @@ void Mkfs(){
         cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
     }
 }
+
 //Aquí va la el listado de comandos que se pueden ejecutar
 void Ejecutar(vector<string> vector)
 {

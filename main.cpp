@@ -16,7 +16,8 @@ void Consola(){
         if (s=="salir"){
             condicion=false;
         }else{
-            string Prueba = "exec -path=/media/audrie8a/Archivos/C/Archivos_Junio/Pruebas.txt";
+            //string Prueba = "exec -path=/media/audrie8a/Archivos/C/Archivos_Junio/Pruebas.txt";
+            string Prueba = "exec -path=/media/audrie8a/Archivos/C/Archivos_Junio/Prueba2.txt";
             //string Prueba="mount -name=Part1 #Comentario \n #Otro";
             
             //Inicio(comando);
