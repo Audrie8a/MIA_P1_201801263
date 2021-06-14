@@ -2,10 +2,10 @@ digraph g{
 rankdir = LR;
 inodo0 [ shape=plaintext label=<<table border='1' cellborder='1'>
 <tr>
-<td colspan="2" bgcolor="skyblue">Inodo 0</td>
+<td colspan="2" bgcolor="blue">Inodo 0</td>
 </tr>
 <tr>
-<td colspan="2" bgcolor="skyblue">Inodo 0</td>
+<td colspan="2" bgcolor="blue">Inodo 0</td>
 </tr>
 <tr>
 <td>UID</td>
@@ -21,75 +21,75 @@ inodo0 [ shape=plaintext label=<<table border='1' cellborder='1'>
 </tr>
 <tr>
 <td>ATime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
 <td>CTime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
 <td>Mtime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
-<td>BLOCK0</td>
+<td>Block0</td>
 <td port='b0'>0</td>
 </tr>
 <tr>
-<td>BLOCK1</td>
+<td>Block1</td>
 <td port='b1'>-1</td>
 </tr>
 <tr>
-<td>BLOCK2</td>
+<td>Block2</td>
 <td port='b2'>-1</td>
 </tr>
 <tr>
-<td>BLOCK3</td>
+<td>Block3</td>
 <td port='b3'>-1</td>
 </tr>
 <tr>
-<td>BLOCK4</td>
+<td>Block4</td>
 <td port='b4'>-1</td>
 </tr>
 <tr>
-<td>BLOCK5</td>
+<td>Block5</td>
 <td port='b5'>-1</td>
 </tr>
 <tr>
-<td>BLOCK6</td>
+<td>Block6</td>
 <td port='b6'>-1</td>
 </tr>
 <tr>
-<td>BLOCK7</td><td port='b7'>-1</td>
+<td>Block7</td><td port='b7'>-1</td>
 </tr>
 <tr>
-<td>BLOCK8</td><td port='b8'>-1</td>
+<td>Block8</td><td port='b8'>-1</td>
 </tr>
 <tr>
-<td>BLOCK9</td>
+<td>Block9</td>
 <td port='b9'>-1</td>
 </tr>
 <tr>
-<td>BLOCK10</td>
+<td>Block10</td>
 <td port='b10'>-1</td>
 </tr>
 <tr>
-<td>BLOCK11</td>
+<td>Block11</td>
 <td port='b11'>-1</td>
 </tr>
 <tr>
-<td>BLOCK12</td>
+<td>Block12</td>
 <td port='b12'>-1</td>
 </tr>
 <tr>
-<td>BLOCK13</td>
+<td>Block13</td>
 <td port='b13'>-1</td>
 </tr>
 <tr>
-<td>BLOCK14</td>
+<td>Block14</td>
 <td port='b14'>-1</td>
 </tr>
 <tr>
@@ -130,10 +130,10 @@ bloque0 [ shape=plaintext label=<
 >];
 inodo1 [ shape=plaintext label=<<table border='1' cellborder='1'>
 <tr>
-<td colspan="2" bgcolor="skyblue">Inodo 1</td>
+<td colspan="2" bgcolor="blue">Inodo 1</td>
 </tr>
 <tr>
-<td colspan="2" bgcolor="skyblue">Inodo 1</td>
+<td colspan="2" bgcolor="blue">Inodo 1</td>
 </tr>
 <tr>
 <td>UID</td>
@@ -149,75 +149,75 @@ inodo1 [ shape=plaintext label=<<table border='1' cellborder='1'>
 </tr>
 <tr>
 <td>ATime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
 <td>CTime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
 <td>Mtime</td>
-<td>Sun Jun 13 21:59:17 2021
+<td>Mon Jun 14 00:04:50 2021
 </td>
 </tr>
 <tr>
-<td>BLOCK0</td>
+<td>Block0</td>
 <td port='b0'>1</td>
 </tr>
 <tr>
-<td>BLOCK1</td>
+<td>Block1</td>
 <td port='b1'>-1</td>
 </tr>
 <tr>
-<td>BLOCK2</td>
+<td>Block2</td>
 <td port='b2'>-1</td>
 </tr>
 <tr>
-<td>BLOCK3</td>
+<td>Block3</td>
 <td port='b3'>-1</td>
 </tr>
 <tr>
-<td>BLOCK4</td>
+<td>Block4</td>
 <td port='b4'>-1</td>
 </tr>
 <tr>
-<td>BLOCK5</td>
+<td>Block5</td>
 <td port='b5'>-1</td>
 </tr>
 <tr>
-<td>BLOCK6</td>
+<td>Block6</td>
 <td port='b6'>-1</td>
 </tr>
 <tr>
-<td>BLOCK7</td><td port='b7'>-1</td>
+<td>Block7</td><td port='b7'>-1</td>
 </tr>
 <tr>
-<td>BLOCK8</td><td port='b8'>-1</td>
+<td>Block8</td><td port='b8'>-1</td>
 </tr>
 <tr>
-<td>BLOCK9</td>
+<td>Block9</td>
 <td port='b9'>-1</td>
 </tr>
 <tr>
-<td>BLOCK10</td>
+<td>Block10</td>
 <td port='b10'>-1</td>
 </tr>
 <tr>
-<td>BLOCK11</td>
+<td>Block11</td>
 <td port='b11'>-1</td>
 </tr>
 <tr>
-<td>BLOCK12</td>
+<td>Block12</td>
 <td port='b12'>-1</td>
 </tr>
 <tr>
-<td>BLOCK13</td>
+<td>Block13</td>
 <td port='b13'>-1</td>
 </tr>
 <tr>
-<td>BLOCK14</td>
+<td>Block14</td>
 <td port='b14'>-1</td>
 </tr>
 <tr>

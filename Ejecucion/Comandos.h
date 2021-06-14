@@ -2419,6 +2419,7 @@ void mkfs(string id, string type, string fs)
 struct SuperBloque *superB = new struct SuperBloque;
 string pathSB = "";
 struct partition ParticionActualSB;
+bool InicioSesion=false; //False no hay sesión iniciada, True ya se loggearon
 
 //OBTIENE LOS DATOS DEL MBR, NECESITA RUTA
 struct SuperBloque *ObtenerSuperBloque()
@@ -3120,6 +3121,30 @@ void repSb(string path, string id)
         cout << "Error, esta particion no ha sido montada!" << endl;
     }
 }
+
+bool ComprobarUusario(string usuario, string password){
+    bool condicion=false;
+    struct TablaInodos *inodo0 =new struct TablaInodos;
+    inodo0=ObtenerInodo(1);
+    struct BloqueArchivo *BA = new struct BloqueArchivo;
+    
+    FILE *file= fopen(pathSB.c_str(),"rb");
+
+    //Recuperar Contenido Users.txt
+    string Contenido="";
+    for(int i=0; i<12; i++){
+        if(inodo0->block[i] !=-1){
+            fseek(file,superB->block_start+sizeof(BloqueArchivo)*inodo0->block[i],0);
+            fread(BA,sizeof(BloqueArchivo),1,file);
+            Contenido+=string(BA->content);
+        }
+    }
+
+
+    fclose(file);
+    return condicion;
+
+}
 //------------------------------------------------COMANDOS--------------------------------------------------
 void login(string usuario, string password, string id)
 {
@@ -3134,11 +3159,20 @@ void login(string usuario, string password, string id)
             string nombre = mbr->PARTICION[i].nombre;
             if (nombre == aux->name)
             {
-                string tipo = mbr->PARTICION[i].type;
+                string tipo = Chart_String(mbr->PARTICION[i].type,1);
                 if (tipo == "p")
                 {
                     ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
                     superB = ObtenerSuperBloque();
+                    if(!InicioSesion){
+                        if(ComprobarUusario(usuario,password)){
+
+                        }else{
+                            cout<<"Usuario y contraseña incorrectas!"<<endl;
+                        }
+                    }else{
+                        cout<<"No se puede iniciar sesion, existe una sesion activa!"<<endl;
+                    }
                     break;
                 }
                 else
