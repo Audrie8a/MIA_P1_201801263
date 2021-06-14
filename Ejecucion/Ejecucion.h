@@ -776,7 +776,7 @@ void Rep()
             }
             else if (name == "inode")
             {
-                //repInode(path, id);
+                repInode(path, id);
             }
             else if (name == "journaling")
             {
@@ -784,7 +784,7 @@ void Rep()
             }
             else if (name == "block")
             {
-                //repBlock(path, id);
+                repBlock(path, id);
             }
             else if (name == "bm_inode")
             {

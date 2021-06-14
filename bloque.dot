@@ -1,0 +1,39 @@
+digraph g{
+rankdir = LR;
+bloque0 [ shape=plaintext label=<
+<table border='1' cellborder='1'>
+<tr>
+<td colspan="2" bgcolor="green">Bloque 0</td>
+</tr>
+<tr>
+<td>.</td>
+<td port='b0'>0</td>
+</tr>
+<tr>
+<td>..</td>
+<td port='b1'>0</td>
+</tr>
+<tr>
+<td>user.txt</td>
+<td port='b2'>1</td>
+</tr>
+<tr>
+<td>--</td>
+<td port='b3'>-1</td>
+</tr>
+</table>
+>];
+bloque1 [ shape=plaintext label=<
+<table border='1' cellborder='1'>
+<tr>
+<td bgcolor="yellow">Bloque 1</td>
+</tr>
+<tr>
+<td>1,g,root
+1,u,root,root,123
+</td>
+</tr>
+</table>
+>];
+bloque0-> bloque1
+}
