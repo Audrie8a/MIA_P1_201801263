@@ -7,6 +7,7 @@
 #include "../Estructuras/MBR.h"
 #include "../Estructuras/EBR.h"
 #include "../Estructuras/SuperBloque.h"
+#include "../Estructuras/Usuarios.h"
 #include <algorithm>
 using namespace std;
 
@@ -2417,6 +2418,7 @@ void mkfs(string id, string type, string fs)
 //*********************************************************************************************************************
 
 struct SuperBloque *superB = new struct SuperBloque;
+struct UsuarioLogin *UsuarioActivo = new struct UsuarioLogin;
 string pathSB = "";
 struct partition ParticionActualSB;
 bool InicioSesion=false; //False no hay sesión iniciada, True ya se loggearon
@@ -3122,6 +3124,36 @@ void repSb(string path, string id)
     }
 }
 
+int getGID(string arreglo[64], string nameGroup){
+    int gid=0;
+    string UsuarioD[5];
+    for(int i=0; i<5; i++){
+        UsuarioD[i]="nulo";
+    } 
+
+    string coma =",";
+    for(int i =0; i<50; i++){
+        if(arreglo[i]!="nulo"){
+            string auxD= arreglo[i];
+            size_t pos=0;
+            std::string token;
+            int cont=0;
+            while((pos=auxD.find(coma))!= std::string::npos){
+                token=auxD.substr(0,pos);
+                arreglo[cont]=token;
+                auxD.erase(0,pos+coma.length());
+                cont++;
+            }
+            arreglo[cont]=auxD;
+
+            if((arreglo[2]==nameGroup)&&(arreglo[1]=="g")){
+                return atoi(arreglo[0].c_str());
+            }
+        }
+    }
+    return gid;
+}
+
 bool ComprobarUusario(string usuario, string password){
     bool condicion=false;
     struct TablaInodos *inodo0 =new struct TablaInodos;
@@ -3140,7 +3172,51 @@ bool ComprobarUusario(string usuario, string password){
         }
     }
 
+    string auxAnalizador[64];
+    string auxC=Contenido;
+    for(int i=0; i<64; i++){
+        auxAnalizador[i]="nulo";
+    }
+    string salto="\n";
+    size_t pos=0;
+    std::string token;
+    int cont=0;
+    while((pos=auxC.find(salto))!=std::string::npos){
+        token=auxC.substr(0,pos);
+        auxAnalizador[cont]=token;
+        auxC.erase(0,pos+salto.length());
+        cont++;
+    }
+    auxAnalizador[cont]=auxC;
 
+    string usuarioD[5];
+    for(int i=0; i<5; i++){
+        usuarioD[i]="nulo";
+    }
+    string coma=",";
+    for(int i =0; i<64; i++){
+        if(auxAnalizador[i]!="nulo"){
+            auxC=auxAnalizador[i];
+            pos=0;
+            cont=0;
+            while ((pos=auxC.find(coma))!=std::string::npos)
+            {
+                token=auxC.substr(0,pos);
+                usuarioD[cont]=token;
+                auxC.erase(0,pos+coma.length());
+                cont++;
+            }
+            usuarioD[cont]=auxC;
+
+            if((usuarioD[3]==usuario)&& (usuarioD[4]==password)){
+                UsuarioActivo->uid= atoi(usuarioD[0].c_str());
+                UsuarioActivo->gid= getGID(auxAnalizador,usuarioD[2]);
+                condicion=true;
+                break;
+            }
+            
+        }
+    }
     fclose(file);
     return condicion;
 
@@ -3166,7 +3242,11 @@ void login(string usuario, string password, string id)
                     superB = ObtenerSuperBloque();
                     if(!InicioSesion){
                         if(ComprobarUusario(usuario,password)){
-
+                            cout<<"Usuario y contraseña correctas!"<<endl;
+                            cout<<"GID: "<<UsuarioActivo->gid<<endl;
+                            cout<<"UID: "<<UsuarioActivo->uid<<endl;
+                            UsuarioActivo->id=id;
+                            InicioSesion=true;
                         }else{
                             cout<<"Usuario y contraseña incorrectas!"<<endl;
                         }
