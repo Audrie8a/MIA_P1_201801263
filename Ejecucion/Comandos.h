@@ -2366,6 +2366,7 @@ void FormatearPE(string tipoFormatear)
 
 //---------------------------------------------------------------COMANDOS---------------------------------------------------------------------
 
+
 void mkfs(string id, string type, string fs)
 {
     TLista aux = getElemento(listaMount, id);
@@ -2485,6 +2486,20 @@ struct BloqueArchivo *ObtenerBloqueArchivo(int posicion){
     fclose(arch);
 
     return auxBA;
+}
+
+void ActualizarBitMapInodos(int posicion,char dato){
+    FILE *arch =fopen(pathSB.c_str(),"rb+");
+    fseek(arch,superB->bm_inode_start+(sizeof(dato)*posicion),0);
+    fwrite(&dato,sizeof(dato),1,arch);
+    fclose(arch);
+}
+
+void ActualizarBitMapBloques(int posicion, char dato){
+    FILE *arch =fopen(pathSB.c_str(),"rb+");
+    fseek(arch,superB->bm_block_start+(sizeof(dato)*posicion),0);
+    fwrite(&dato,sizeof(dato),1,arch);
+    fclose(arch);
 }
 
 string ReporteSB()
@@ -3221,6 +3236,51 @@ bool ComprobarUusario(string usuario, string password){
     return condicion;
 
 }
+
+void SimulacionPerdida(){
+    if(superB->filesystem_type==3){
+        FILE *file = fopen(pathSB.c_str(),"rb+");
+        fseek(file, superB->bm_inode_start,0);
+        int cont=0;
+        char aux='0';
+        
+        for(int i=0; i<superB->inodes_count; i++){
+            fwrite(&aux,sizeof(aux),1,file);
+        }
+
+        fclose(file);
+        cout<<"Simulacion perdida terminada!"<<endl;
+    }else{
+        cout<<"Error, solo es permitido para EXT3"<<endl;
+    }
+}
+
+void SimulacionRecuperacion(){
+    if(superB->filesystem_type==3){
+        FILE *file = fopen(pathSB.c_str(),"rb+");
+        fseek(file, superB->bm_inode_start-(sizeof(Journaling)*superB->inodes_count),0);
+
+        for(int i=0; i<superB->inodes_count; i++){
+            struct Journaling Journal;
+            fread(&Journal,sizeof(Journaling),1,file);
+            if(Journal.InodoAfectado!=-1){
+                string operacion=Journal.operacion;
+                if(operacion!="rem"){
+                    ActualizarBitMapInodos(Journal.InodoAfectado,'1');
+                }else{
+                    ActualizarBitMapInodos(Journal.InodoAfectado,'0');
+                }
+            }
+        }
+
+        fclose(file);
+        cout<<"Simulacion recuperacion terminada!"<<endl;
+    }else{
+        cout<<"Error, solo es permitido para EXT3"<<endl;
+    }
+}
+
+
 //------------------------------------------------COMANDOS--------------------------------------------------
 void login(string usuario, string password, string id)
 {
@@ -3253,6 +3313,91 @@ void login(string usuario, string password, string id)
                     }else{
                         cout<<"No se puede iniciar sesion, existe una sesion activa!"<<endl;
                     }
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
+
+void logout(){
+    InicioSesion=false;
+    cout<<"Cerrando Sesion!"<<endl;
+}
+
+void loss(string id){
+   TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+
+        pathSB = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                if (tipo == "p")
+                {
+                    ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
+                    superB = ObtenerSuperBloque();
+                    SimulacionPerdida();
+                    break;
+                }
+                else
+                {
+                    if (tipo == "e")
+                    {
+                        cout << "Se debe elegir una particion lógica!" << endl;
+                    }
+                    else
+                    {
+                        cout << "FALTA TRABAJAR EL SISTEMA DE ARCHIVOS CON LAS LOGICAS!" << endl;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "Error, esta particion no ha sido montada!" << endl;
+    }
+}
+
+void recovery(string id){
+   TLista aux = getElemento(listaMount, id);
+    if (aux != nullptr)
+    {
+
+        pathSB = aux->path;
+        mbr = ObtenerMBR(pathSA);
+        for (int i = 0; i < 4; i++)
+        {
+            string nombre = mbr->PARTICION[i].nombre;
+            if (nombre == aux->name)
+            {
+                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                if (tipo == "p")
+                {
+                    ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
+                    superB = ObtenerSuperBloque();
+                    SimulacionRecuperacion();
                     break;
                 }
                 else

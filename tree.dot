@@ -21,17 +21,17 @@ inodo0 [ shape=plaintext label=<<table border='1' cellborder='1'>
 </tr>
 <tr>
 <td>ATime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>
 <td>CTime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>
 <td>Mtime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>
@@ -109,7 +109,7 @@ bloque0 [ shape=plaintext label=<
 <td colspan="2" bgcolor="green">Bloque 0</td>
 </tr>
 <tr>
-<td>P†ZUUU</td>
+<td>P–ZUUU</td>
 <td port='b0'>-1</td>
 </tr>
 <tr>
@@ -149,17 +149,17 @@ inodo1 [ shape=plaintext label=<<table border='1' cellborder='1'>
 </tr>
 <tr>
 <td>ATime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>
 <td>CTime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>
 <td>Mtime</td>
-<td>Mon Jun 14 02:18:14 2021
+<td>Mon Jun 14 04:28:47 2021
 </td>
 </tr>
 <tr>

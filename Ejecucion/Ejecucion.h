@@ -122,7 +122,8 @@ void VerificarPath(string path)
     path = SplitRuta(path);
     if (!VerificarExistencia(path))
     {
-        string comando = "mkdir -m 777 " + path;
+        //string comando = "mkdir -m 777 " + path;
+        string comando = "mkdir -p " + path;
         system(comando.c_str());
     }
 }
@@ -259,7 +260,7 @@ void Rmdisk()
             path = ObtenerPaths(path);
             //Comprobar existencia del archivo
             FILE *arch;
-            arch = fopen(path.c_str(), "rb");
+            arch = fopen(path.c_str(), "r");
             if (arch)
             {
                 //Existe el archivo
@@ -666,6 +667,51 @@ void Login()
     }
 }
 
+void Loss()
+{
+    string id = "";
+    string cmd = CMD[indice];
+    transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+    if (cmd == "-id")
+    {
+        indice++;
+        id = CMD[indice];
+    }
+
+    if (id != "")
+    {
+        loss(id);
+    }
+    else
+    {
+        cout << "Falta el atributo id" << endl;
+    }
+}
+
+void Recovery()
+{
+    string id = "";
+    string cmd = CMD[indice];
+    transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+    if (cmd == "-id")
+    {
+        indice++;
+        id = CMD[indice];
+    }
+
+    if (id != "")
+    {
+        recovery(id);
+    }
+    else
+    {
+        cout << "Falta el atributo id" << endl;
+    }
+}
+
+void Mkusr()
+{
+}
 
 void Rep()
 {
@@ -780,7 +826,6 @@ void Rep()
     }
 }
 
-
 //Aquí va la el listado de comandos que se pueden ejecutar
 void Ejecutar(vector<string> vector)
 {
@@ -839,6 +884,7 @@ void Ejecutar(vector<string> vector)
     else if (cmd == "logout")
     {
         indice++;
+        logout();
         indice = 0;
     }
     else if (cmd == "mkgrp")
@@ -864,6 +910,16 @@ void Ejecutar(vector<string> vector)
     else if (cmd == "pause")
     {
         pause();
+        indice = 0;
+    }else if (cmd == "loss")
+    {
+        indice++;
+        Loss();
+        indice = 0;
+    }else if (cmd == "recovery")
+    {
+        indice++;
+        Recovery();
         indice = 0;
     }
     else if (cmd[0] == '#')
