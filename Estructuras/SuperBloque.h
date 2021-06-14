@@ -19,6 +19,10 @@ struct Content{
     int inodo=-1;
 };
 
+struct BloqueApuntadores{
+    int b_pointers[16]={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+};
+
 struct BloqueCarpeta{
     Content content[4];
 };

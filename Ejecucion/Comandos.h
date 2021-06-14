@@ -2380,7 +2380,7 @@ void mkfs(string id, string type, string fs)
             string nombre = mbr->PARTICION[i].nombre;
             if (nombre == aux->name)
             {
-                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                string tipo = Chart_String(mbr->PARTICION[i].type, 1);
                 if (tipo == "p")
                 {
                     ParticionActual = ObtenerParticionPE(aux->name, aux->path);
@@ -2417,100 +2417,9 @@ void mkfs(string id, string type, string fs)
 //*********************************************************************************************************************
 
 struct SuperBloque *superB = new struct SuperBloque;
-string pathSB="";
+string pathSB = "";
 struct partition ParticionActualSB;
 
-string ReporteSB(){
-    char fecha[25];
-    string Imprimir="digraph g{\n";
-    
-    Imprimir+="\t     nodo [ shape=plaintext label=<\n";
-    Imprimir+="\t \t        <table border='1' cellborder='1'>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t               <td colspan=\"2\" >Super Bloque</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t               <td>s_inodes_count</td>\n";
-    Imprimir+="\t \t \t \t               <td>"+to_string(superB->inodes_count) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t               <td>s_blocks_count</td>\n";
-    Imprimir+="\t \t \t \t               <td>"+to_string(superB->blocks_count) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t               <td>s_free_blocks_count</td>\n";
-    Imprimir+="\t \t \t \t               <td>"+to_string(superB->free_blocks_count) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_free_inodes_count</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->free_inodes_count) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-
-    time_t current_time = superB->Mtime;
-    ctime(&current_time);
-    strcpy(fecha, ctime(&current_time));
-    Imprimir+="\t \t \t \t                <td>s_mtime</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+string(fecha) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    current_time=superB->Umtime;
-    ctime(&current_time);
-    strcpy(fecha, ctime(&current_time));
-    Imprimir+="\t \t \t \t                <td>s_umtime</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+string(fecha) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";    
-    Imprimir+="\t \t \t \t                <td>s_mnt_count</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->mnt_count) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_magic</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->magic) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_inode_size</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->inode_size) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_block_size</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_size) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_first_ino</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->fist_ino) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_first_blo</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->first_blo)+"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_bm_inode_start</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->bm_inode_start) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_bm_block_start</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_start) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_inode_start</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->inode_start) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t \t            <tr>\n";
-    Imprimir+="\t \t \t \t                <td>s_block_start</td>\n";
-    Imprimir+="\t \t \t \t                <td>"+to_string(superB->block_start) +"</td>\n";
-    Imprimir+="\t \t \t            </tr>\n";
-    Imprimir+="\t \t        </table>\n";
-    Imprimir+="\t     >];\n";
-    Imprimir+="}\n";
-    return Imprimir;
-
-}
-
-string ReporteArbol(){
-    string Imprimir ="";
-    return Imprimir;    
-}
 //OBTIENE LOS DATOS DEL MBR, NECESITA RUTA
 struct SuperBloque *ObtenerSuperBloque()
 {
@@ -2525,7 +2434,608 @@ struct SuperBloque *ObtenerSuperBloque()
     return newSB;
 }
 
-void repTree(string path, string id){
+struct TablaInodos *ObtenerInodo(int posicion)
+{
+    struct TablaInodos *auxInodo = new struct TablaInodos;
+    FILE *arch = fopen(pathSB.c_str(), "rb");
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, superB->inode_start + (sizeof(TablaInodos) * posicion), 0); //Seek_set o "0", es desede el inicio del archivo
+    fread(auxInodo, sizeof(TablaInodos), 1, arch);
+    fclose(arch);
+
+    return auxInodo;
+}
+
+struct BloqueCarpeta *ObtenerBloqueCarpeta(int posicion)
+{
+    struct BloqueCarpeta *auxCarpeta = new struct BloqueCarpeta;
+    FILE *arch;
+    arch = fopen(pathSB.c_str(), "rb");
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, superB->block_start + (sizeof(BloqueCarpeta) * posicion), SEEK_SET); //Seek_set o "0", es desede el inicio del archivo
+    fread(auxCarpeta, sizeof(BloqueCarpeta), 1, arch);
+    fclose(arch);
+
+    return auxCarpeta;
+}
+
+struct BloqueApuntadores *ObtenerBloqueApuntador(int posicion)
+{
+    struct BloqueApuntadores *auxBA = new struct BloqueApuntadores;
+    FILE *arch;
+    arch = fopen(pathSB.c_str(), "rb");
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, superB->block_start + (sizeof(BloqueApuntadores) * posicion), SEEK_SET); //Seek_set o "0", es desede el inicio del archivo
+    fread(auxBA, sizeof(BloqueApuntadores), 1, arch);
+    fclose(arch);
+
+    return auxBA;
+}
+
+struct BloqueArchivo *ObtenerBloqueArchivo(int posicion){
+    struct BloqueArchivo *auxBA = new struct BloqueArchivo;
+    FILE *arch;
+    arch = fopen(pathSB.c_str(), "rb");
+    //Fichero, posición, En que dirección empieza a leer
+    fseek(arch, superB->block_start + (sizeof(BloqueArchivo) * posicion), SEEK_SET); //Seek_set o "0", es desede el inicio del archivo
+    fread(auxBA, sizeof(BloqueArchivo), 1, arch);
+    fclose(arch);
+
+    return auxBA;
+}
+
+string ReporteSB()
+{
+    char fecha[25];
+    string Imprimir = "digraph g{\n";
+
+    Imprimir += "\t     nodo [ shape=plaintext label=<\n";
+    Imprimir += "\t \t        <table border='1' cellborder='1'>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t               <td colspan=\"2\" >Super Bloque</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t               <td>s_inodes_count</td>\n";
+    Imprimir += "\t \t \t \t               <td>" + to_string(superB->inodes_count) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t               <td>s_blocks_count</td>\n";
+    Imprimir += "\t \t \t \t               <td>" + to_string(superB->blocks_count) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t               <td>s_free_blocks_count</td>\n";
+    Imprimir += "\t \t \t \t               <td>" + to_string(superB->free_blocks_count) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_free_inodes_count</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->free_inodes_count) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+
+    time_t current_time = superB->Mtime;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir += "\t \t \t \t                <td>s_mtime</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + string(fecha) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    current_time = superB->Umtime;
+    ctime(&current_time);
+    strcpy(fecha, ctime(&current_time));
+    Imprimir += "\t \t \t \t                <td>s_umtime</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + string(fecha) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_mnt_count</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->mnt_count) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_magic</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->magic) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_inode_size</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->inode_size) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_block_size</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->block_size) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_first_ino</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->fist_ino) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_first_blo</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->first_blo) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_bm_inode_start</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->bm_inode_start) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_bm_block_start</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->block_start) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_inode_start</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->inode_start) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t \t            <tr>\n";
+    Imprimir += "\t \t \t \t                <td>s_block_start</td>\n";
+    Imprimir += "\t \t \t \t                <td>" + to_string(superB->block_start) + "</td>\n";
+    Imprimir += "\t \t \t            </tr>\n";
+    Imprimir += "\t \t        </table>\n";
+    Imprimir += "\t     >];\n";
+    Imprimir += "}\n";
+    return Imprimir;
+}
+
+string ReporteArbol()
+{
+    char fecha[25];
+    string Imprimir = "digraph g{\n";
+    Imprimir += "rankdir = LR;\n";
+    char bit = 'x';
+    FILE *file = fopen(pathSB.c_str(), "rb");
+    fseek(file, superB->bm_inode_start, 0);
+
+    for (int i = 0; i < superB->inodes_count; i++)
+    {
+        fread(&bit, sizeof(bit), 1, file);
+        if (bit == '1')
+        {
+            struct TablaInodos *inodo = new struct TablaInodos;
+            inodo = ObtenerInodo(i);
+            Imprimir += "inodo" + to_string(i) + " [ shape=plaintext label=<";
+            Imprimir += "<table border='1' cellborder='1'>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td colspan=\"2\" bgcolor=\"blue\">Inodo " + to_string(i) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td colspan=\"2\" bgcolor=\"blue\">Inodo " + to_string(i) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>UID</td>\n";
+            Imprimir += "<td>" + to_string(inodo->uid) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>GID</td>\n";
+            Imprimir += "<td>" + to_string(inodo->gid) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Size</td>\n";
+            Imprimir += "<td>" + to_string(inodo->size) + "</td>\n";
+            Imprimir += "</tr>\n";
+            time_t current_time = inodo->atime;
+            ctime(&current_time);
+            strcpy(fecha, ctime(&current_time));
+
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>ATime</td>\n";
+            Imprimir += "<td>" + string(fecha) + "</td>\n";
+            Imprimir += "</tr>\n";
+
+            current_time = inodo->ctime;
+            ctime(&current_time);
+            strcpy(fecha, ctime(&current_time));
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>CTime</td>\n";
+            Imprimir += "<td>" + string(fecha) + "</td>\n";
+            Imprimir += "</tr>\n";
+            current_time = inodo->mtime;
+            ctime(&current_time);
+            strcpy(fecha, ctime(&current_time));
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Mtime</td>\n";
+            Imprimir += "<td>" + string(fecha) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block0</td>\n";
+            Imprimir += "<td port='b0'>" + to_string(inodo->block[0]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block1</td>\n";
+            Imprimir += "<td port='b1'>" + to_string(inodo->block[1]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block2</td>\n";
+            Imprimir += "<td port='b2'>" + to_string(inodo->block[2]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block3</td>\n";
+            Imprimir += "<td port='b3'>" + to_string(inodo->block[3]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block4</td>\n";
+            Imprimir += "<td port='b4'>" + to_string(inodo->block[4]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block5</td>\n";
+            Imprimir += "<td port='b5'>" + to_string(inodo->block[5]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block6</td>\n";
+            Imprimir += "<td port='b6'>" + to_string(inodo->block[6]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block7</td><td port='b7'>" + to_string(inodo->block[7]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block8</td><td port='b8'>" + to_string(inodo->block[8]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block9</td>\n";
+            Imprimir += "<td port='b9'>" + to_string(inodo->block[9]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block10</td>\n";
+            Imprimir += "<td port='b10'>" + to_string(inodo->block[10]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block11</td>\n";
+            Imprimir += "<td port='b11'>" + to_string(inodo->block[11]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block12</td>\n";
+            Imprimir += "<td port='b12'>" + to_string(inodo->block[12]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block13</td>\n";
+            Imprimir += "<td port='b13'>" + to_string(inodo->block[13]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Block14</td>\n";
+            Imprimir += "<td port='b14'>" + to_string(inodo->block[14]) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Type</td>\n";
+            Imprimir += "<td>" + string(1, inodo->type) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "<tr>\n";
+            Imprimir += "<td>Permisos</td>\n";
+            Imprimir += "<td>" + to_string(inodo->perm) + "</td>\n";
+            Imprimir += "</tr>\n";
+            Imprimir += "</table>\n";
+            Imprimir += ">];\n";
+
+            if (string(1, inodo->type) == "0")
+            { //Si es una carpeta
+                for (int j = 0; j < 15; j++)
+                {
+                    if (inodo->block[j] != -1)
+                    {
+                        Imprimir += "inodo" + to_string(i) + ":b" + to_string(j) + "->bloque" + to_string(inodo->block[j]) + "\n";
+                        struct BloqueCarpeta *block = new struct BloqueCarpeta;
+                        Imprimir += "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                        Imprimir += "<table border='1' cellborder='1'>\n";
+                        Imprimir += "<tr>\n"; 
+                        Imprimir+="<td colspan=\"2\" bgcolor=\"green\">Bloque " + to_string(inodo->block[j]) + "</td>\n";
+                        Imprimir+="</tr>\n";
+                        Imprimir += "<tr>\n"; 
+                        Imprimir+="<td>" + string(block->content[0].name) + "</td>\n"; 
+                        Imprimir+="<td port='b0'>" + to_string(block->content[0].inodo) + "</td>\n"; 
+                        Imprimir+="</tr>\n";
+                        Imprimir += "<tr>\n"; 
+                        Imprimir+="<td>" + string(block->content[1].name) + "</td>\n"; 
+                        Imprimir+="<td port='b1'>" + to_string(block->content[1].inodo) + "</td>\n"; 
+                        Imprimir+="</tr>\n";
+                        Imprimir += "<tr>\n"; 
+                        Imprimir+="<td>" + string(block->content[2].name) + "</td>\n"; 
+                        Imprimir+="<td port='b2'>" + to_string(block->content[2].inodo) + "</td>\n"; 
+                        Imprimir+="</tr>\n";
+                        Imprimir += "<tr>\n"; 
+                        Imprimir+="<td>" + string(block->content[3].name) + "</td>\n"; 
+                        Imprimir+="<td port='b3'>" + to_string(block->content[3].inodo) + "</td>\n"; 
+                        Imprimir+="</tr>\n";
+                        Imprimir += "</table>\n";
+                        Imprimir += ">];\n";
+
+                        for (int k = 0; k < 4; k++)
+                        {
+                            if (block->content[k].inodo != -1)
+                            {
+                                string nombre = (block->content[k].name);
+                                if (!((nombre == ".") || (nombre == "..")))
+                                {
+                                    Imprimir += "bloque" + to_string(inodo->block[j]) + ":b" + to_string(k) + " -> inodo" + to_string(block->content[k].inodo) + ";\n";
+                                }
+                            }
+                        }
+
+                        if (j > 11)
+                        { //Bloques Indirectos
+                            if (j == 12)
+                            {
+                                Imprimir += "inodo" + to_string(i) + ":b" + to_string(j) + " -> bloque" + to_string(inodo->block[j]) + "\n";
+
+                                struct BloqueApuntadores *apuntador = ObtenerBloqueApuntador(inodo->block[j]);
+                                Imprimir += "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                                Imprimir += "<table border='1' cellborder='1'>\n";
+                                Imprimir += "<tr>\n"; 
+                                Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                                Imprimir+="</tr>\n";
+                                for (int l = 0; l < 16; l++)
+                                {
+                                    Imprimir += "<tr>\n"; 
+                                    Imprimir+="<td port='b" + to_string(l) + "'>" + to_string(apuntador->b_pointers[l]) + "</td>\n"; 
+                                    Imprimir+="</tr>\n";
+                                }
+                                Imprimir += "</table>\n";
+                                Imprimir += " >];\n";
+
+                                for (int l = 0; l < 16; l++)
+                                {
+                                    if (apuntador->b_pointers[l] != -1)
+                                    {
+                                        Imprimir += "bloque" + to_string(inodo->block[j]) + ":b" + to_string(l) + " -> bloque" + to_string(apuntador->b_pointers[l]) + "\n";
+                                        BloqueCarpeta *block2 = new struct BloqueCarpeta;
+                                        block2 = ObtenerBloqueCarpeta(apuntador->b_pointers[l]);
+                                        Imprimir += "bloque" + to_string(apuntador->b_pointers[l]) + " [ shape=plaintext label=<\n";
+                                        Imprimir += "<table border='1' cellborder='1'>\n";
+                                        Imprimir += "<tr>\n"; 
+                                        Imprimir+="<td colspan=\"2\" bgcolor=\"green\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        Imprimir += "<tr>\n"; 
+                                        Imprimir+="<td>" + string(block2->content[0].name) + "</td>\n"; 
+                                        Imprimir+="<td port='b0'>" + to_string(block2->content[0].inodo) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+
+                                        Imprimir += "<tr>\n"; 
+                                        Imprimir+="<td>" + string(block2->content[1].name) + "</td>\n"; 
+                                        Imprimir+="<td port='b1'>" + to_string(block2->content[1].inodo) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        Imprimir += "<tr>\n"; 
+                                        Imprimir+="<td>" + string(block2->content[2].name) + "</td>\n"; 
+                                        Imprimir+="<td port='b2'>" + to_string(block2->content[2].inodo) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        Imprimir += "<tr>\n"; 
+                                        Imprimir+="<td>" + string(block2->content[3].name) + "</td>\n"; 
+                                        Imprimir+="<td port='b3'>" + to_string(block2->content[3].inodo) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        Imprimir += "</table>\n";
+                                        Imprimir += ">];\n";
+                                        for (int m = 0; m < 4; m++)
+                                        {
+                                            if (block2->content[m].inodo != -1)
+                                            {
+                                                string nombre2 = block2->content[m].name;
+                                                if (!((nombre2 == ".") || (nombre2 == "..")))
+                                                {
+                                                    Imprimir += "bloque" + to_string(apuntador->b_pointers[l]) + ":b" + to_string(m) + " -> inodo" + to_string(block2->content[m].inodo) + ";\n";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            { //Si es un archivo
+                for (int j = 0; j < 15; j++)
+                {
+                    if (inodo->block[j] != -1)
+                    {
+                        if (j < 12)
+                        {
+                            Imprimir +=  "inodo" + to_string(i) + ":b" + to_string(j) + " -> bloque" + to_string(inodo->block[j]) + "\n";
+                            //Metodo para graficar el bloque de archivo
+                            struct BloqueArchivo *archivo = new struct BloqueArchivo;
+                            archivo= ObtenerBloqueArchivo(inodo->block[j]);
+                            Imprimir +=  "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                            Imprimir +=  "<table border='1' cellborder='1'>\n";
+                            Imprimir +=  "<tr>\n"; 
+                            Imprimir+="<td bgcolor=\"yellow\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                            Imprimir+="</tr>\n";
+                            Imprimir +=  "<tr>\n"; 
+                            Imprimir+="<td>" + string(archivo->content) + "</td>\n"; 
+                            Imprimir+="</tr>\n";
+                            Imprimir +=  "</table>\n";
+                            Imprimir +=  " >];\n";
+                        }
+                        if (j > 11)
+                        {
+                            if (j == 12)
+                            { //Bloque indirecto simple
+                                Imprimir +=  "inodo" + to_string(i) + ":b" + to_string(j) + " -> bloque" + to_string(inodo->block[j]) + "\n";
+                                
+                                struct BloqueApuntadores *apuntador = new struct BloqueApuntadores;
+                                apuntador=ObtenerBloqueApuntador(inodo->block[j]);
+                                Imprimir +=  "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                                Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                Imprimir +=  "<tr>\n"; 
+                                Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                                Imprimir+="</tr>\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    Imprimir +=  "<tr>\n"; 
+                                    Imprimir+="<td port='b" + to_string(h) + "'>" + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                    Imprimir+="</tr>\n";
+                                }
+                                Imprimir +=  "</table>\n";
+                                Imprimir +=  " >];\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    if (apuntador->b_pointers[h] != -1)
+                                    {
+                                        Imprimir +=  "bloque" + to_string(inodo->block[j]) + ":b" + to_string(h) + " -> bloque" + to_string(apuntador->b_pointers[h]) + "\n";
+                                        struct BloqueArchivo *arch = new struct BloqueArchivo;
+                                        arch=ObtenerBloqueArchivo(apuntador->b_pointers[h]);
+                                        Imprimir +=  "bloque" + to_string(apuntador->b_pointers[h]) + " [ shape=plaintext label=<\n";
+                                        Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                        Imprimir +=  "<tr>\n"; 
+                                        Imprimir+="<td bgcolor=\"yellow\">Bloque " + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";                                        
+                                        Imprimir +=  "<tr>\n"; 
+                                        Imprimir+="<td>" + string(arch->content) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        Imprimir +=  "</table>\n";
+                                        Imprimir +=  " >];\n";
+                                    }
+                                }
+                            }
+                            else if (j == 13)
+                            { //Bloque indirecto doble
+                                Imprimir +=  "inodo" + to_string(i) + ":b" + to_string(j) + " -> bloque" + to_string(inodo->block[j]) + "\n";
+                                struct BloqueApuntadores *apuntador = new struct BloqueApuntadores;
+                                apuntador=ObtenerBloqueApuntador(inodo->block[j]);
+                                Imprimir +=  "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                                Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                Imprimir +=  "<tr>\n"; 
+                                Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                                Imprimir+="</tr>\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    Imprimir +=  "<tr>\n"; 
+                                    Imprimir+="<td port='b" + to_string(h) + "'>" + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                    Imprimir+="</tr>\n";
+                                }
+                                Imprimir +=  "</table>\n";
+                                Imprimir +=  " >];\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    if (apuntador->b_pointers[h] != -1)
+                                    {
+                                        Imprimir +=  "bloque" + to_string(inodo->block[j]) + ":b" + to_string(h) + " -> bloque" + to_string(apuntador->b_pointers[h]) + "\n";
+                                        struct BloqueApuntadores *apt = new struct BloqueApuntadores;
+                                        apt=ObtenerBloqueApuntador(inodo->block[j]);
+                                        Imprimir +=  "bloque" + to_string(apuntador->b_pointers[h]) + " [ shape=plaintext label=<\n";
+                                        Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                        Imprimir +=  "<tr>\n"; 
+                                        Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        for (int k = 0; k < 16; k++)
+                                        {
+                                            Imprimir +=  "<tr>\n"; 
+                                            Imprimir+="<td port='b" + to_string(k) + "'>" + to_string(apt->b_pointers[k]) + "</td>\n"; 
+                                            Imprimir+="</tr>\n";
+                                        }
+                                        Imprimir +=  "</table>\n";
+                                        Imprimir +=  " >];\n";
+                                        for (int k = 0; k < 16; k++)
+                                        {
+                                            if (apt->b_pointers[k] != -1)
+                                            {
+                                                //Escribiremos los bloques de archivos
+                                                Imprimir +=  "bloque" + to_string(apuntador->b_pointers[h]) + ":b" + to_string(k) + " -> bloque" + to_string(apt->b_pointers[k]) + "\n";
+                                                struct BloqueArchivo *arch = new struct BloqueArchivo;
+                                                arch=ObtenerBloqueArchivo(apt->b_pointers[k]);
+                                                Imprimir +=  "bloque" + to_string(apt->b_pointers[k]) + " [ shape=plaintext label=<\n";
+                                                Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                                Imprimir +=  "<tr>\n"; 
+                                                Imprimir+="<td bgcolor=\"yellow\">Bloque " + to_string(apt->b_pointers[k]) + "</td>\n"; 
+                                                Imprimir+="</tr>\n";
+                                                
+                                                Imprimir +=  "<tr>\n"; 
+                                                Imprimir+="<td>" + string(arch->content) + "</td>\n"; 
+                                                Imprimir+="</tr>\n";
+                                                Imprimir +=  "</table>\n";
+                                                Imprimir +=  " >];\n";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (j == 14)
+                            { //Bloque indirecto triple
+                                Imprimir +=  "inodo" + to_string(i) + ":b" + to_string(j) + " -> bloque" + to_string(inodo->block[j]) + "\n";
+                                struct BloqueApuntadores *apuntador = new struct BloqueApuntadores;
+                                apuntador=ObtenerBloqueApuntador(inodo->block[j]);
+                                Imprimir +=  "bloque" + to_string(inodo->block[j]) + " [ shape=plaintext label=<\n";
+                                Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                Imprimir +=  "<tr>\n"; 
+                                Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(inodo->block[j]) + "</td>\n"; 
+                                Imprimir+="</tr>\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    Imprimir +=  "<tr>\n"; 
+                                    Imprimir+="<td port='b" + to_string(h) + "'>" + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                    Imprimir+="</tr>\n";
+                                }
+                                Imprimir +=  "</table>\n";
+                                Imprimir +=  " >];\n";
+                                for (int h = 0; h < 16; h++)
+                                {
+                                    if (apuntador->b_pointers[h] != -1)
+                                    {
+                                        Imprimir +=  "bloque" + to_string(inodo->block[j]) + ":b" + to_string(h) + " -> bloque" + to_string(apuntador->b_pointers[h]) + "\n";
+                                        struct BloqueApuntadores *apt = new struct BloqueApuntadores;
+                                        apt=ObtenerBloqueApuntador(inodo->block[j]);
+                                        Imprimir +=  "bloque" + to_string(apuntador->b_pointers[h]) + " [ shape=plaintext label=<\n";
+                                        Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                        Imprimir +=  "<tr>\n"; 
+                                        Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(apuntador->b_pointers[h]) + "</td>\n"; 
+                                        Imprimir+="</tr>\n";
+                                        for (int k = 0; k < 16; k++)
+                                        {
+                                            Imprimir +=  "<tr>\n"; 
+                                            Imprimir+="<td port='b" + to_string(k) + "'>" + to_string(apt->b_pointers[k]) + "</td>\n"; 
+                                            Imprimir+="</tr>\n";
+                                        }
+                                        Imprimir +=  "</table>\n";
+                                        Imprimir +=  " >];\n";
+                                        for (int k = 0; k < 16; k++)
+                                        {
+                                            if (apt->b_pointers[k] != -1)
+                                            {
+                                                //Escribiremos los bloques de archivos
+                                                Imprimir +=  "bloque" + to_string(apuntador->b_pointers[h]) + ":b" + to_string(k) + " -> bloque" + to_string(apt->b_pointers[k]) + "\n";
+                                                struct BloqueApuntadores *apt3 = new struct BloqueApuntadores;
+                                                apt=ObtenerBloqueApuntador(apt->b_pointers[k]);
+                                                Imprimir +=  "bloque" + to_string(apt->b_pointers[k]) + " [ shape=plaintext label=<\n";
+                                                Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                                Imprimir +=  "<tr>\n"; 
+                                                Imprimir+="<td bgcolor=\"orange\">Bloque " + to_string(apt->b_pointers[k]) + "</td>\n"; 
+                                                Imprimir+="</tr>\n";
+                                                for (int l = 0; l < 16; l++)
+                                                {
+                                                    Imprimir +=  "<tr>\n"; 
+                                                    Imprimir+="<td port='b" + to_string(l) + "'>" + to_string(apt3->b_pointers[l]) + "</td>\n"; 
+                                                    Imprimir+="</tr>\n";
+                                                }
+                                                Imprimir +=  "</table>\n";
+                                                Imprimir +=  " >];\n";
+                                                for (int l = 0; l < 16; l++)
+                                                {
+                                                    if (apt3->b_pointers[l] != -1)
+                                                    {
+                                                        Imprimir +=  "bloque" + to_string(apt->b_pointers[k]) + ":b" + to_string(l) + " -> bloque" + to_string(apt3->b_pointers[l]) + "\n";
+                                                        struct BloqueArchivo *arch = new struct BloqueArchivo;
+                                                        arch= ObtenerBloqueArchivo(apt3->b_pointers[l]);
+                                                        Imprimir +=  "bloque" + to_string(apt3->b_pointers[l]) + " [ shape=plaintext label=<\n";
+                                                        Imprimir +=  "<table border='1' cellborder='1'>\n";
+                                                        Imprimir +=  "<tr>\n"; 
+                                                        Imprimir+="<td bgcolor=\"yellow\">Bloque " + to_string(apt3->b_pointers[l]) + "</td>\n"; 
+                                                        Imprimir+="</tr>\n";
+                                                        
+                                                        Imprimir +=  "<tr>\n"; 
+                                                        Imprimir+="<td>" + string(arch->content) + "</td>\n"; 
+                                                        Imprimir+="</tr>\n";
+                                                        Imprimir +=  "</table>\n";
+                                                        Imprimir +=  " >];\n";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    Imprimir +="}";
+    return Imprimir;
+}
+
+void repTree(string path, string id)
+{
     TLista aux = getElemento(listaMount, id);
     if (aux != nullptr)
     {
@@ -2537,11 +3047,15 @@ void repTree(string path, string id){
             string nombre = mbr->PARTICION[i].nombre;
             if (nombre == aux->name)
             {
-                string tipo = Chart_String(mbr->PARTICION[i].type,1);
+                string tipo = Chart_String(mbr->PARTICION[i].type, 1);
                 if (tipo == "p")
                 {
                     ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
-                    superB=ObtenerSuperBloque();
+                    superB = ObtenerSuperBloque();
+                    string Contenido = ReporteArbol();
+                    //cout<<Contenido<<endl;
+                    Graficar(path,"tree.dot",Contenido);
+                    cout<<"Grafica Generada!"<<endl;
                     break;
                 }
                 else
@@ -2564,7 +3078,8 @@ void repTree(string path, string id){
     }
 }
 
-void repSb(string path, string id){
+void repSb(string path, string id)
+{
     TLista aux = getElemento(listaMount, id);
     if (aux != nullptr)
     {
@@ -2576,14 +3091,14 @@ void repSb(string path, string id){
             string nombre = mbr->PARTICION[i].nombre;
             if (nombre == aux->name)
             {
-                string tipo = Chart_String( mbr->PARTICION[i].type,1);
+                string tipo = Chart_String(mbr->PARTICION[i].type, 1);
                 if (tipo == "p")
                 {
                     ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
-                    superB=ObtenerSuperBloque();
-                    string Contenido= ReporteSB();
-                    Graficar(path,"sb.dot", Contenido);
-                    cout<<"Grafica Generada!"<<endl;
+                    superB = ObtenerSuperBloque();
+                    string Contenido = ReporteSB();
+                    Graficar(path, "sb.dot", Contenido);
+                    cout << "Grafica Generada!" << endl;
                     break;
                 }
                 else
@@ -2623,7 +3138,7 @@ void login(string usuario, string password, string id)
                 if (tipo == "p")
                 {
                     ParticionActualSB = ObtenerParticionPE(aux->name, aux->path);
-                    superB=ObtenerSuperBloque();
+                    superB = ObtenerSuperBloque();
                     break;
                 }
                 else

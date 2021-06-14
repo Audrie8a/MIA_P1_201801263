@@ -1,0 +1,246 @@
+digraph g{
+rankdir = LR;
+inodo0 [ shape=plaintext label=<<table border='1' cellborder='1'>
+<tr>
+<td colspan="2" bgcolor="skyblue">Inodo 0</td>
+</tr>
+<tr>
+<td colspan="2" bgcolor="skyblue">Inodo 0</td>
+</tr>
+<tr>
+<td>UID</td>
+<td>1</td>
+</tr>
+<tr>
+<td>GID</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Size</td>
+<td>0</td>
+</tr>
+<tr>
+<td>ATime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>CTime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>Mtime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>BLOCK0</td>
+<td port='b0'>0</td>
+</tr>
+<tr>
+<td>BLOCK1</td>
+<td port='b1'>-1</td>
+</tr>
+<tr>
+<td>BLOCK2</td>
+<td port='b2'>-1</td>
+</tr>
+<tr>
+<td>BLOCK3</td>
+<td port='b3'>-1</td>
+</tr>
+<tr>
+<td>BLOCK4</td>
+<td port='b4'>-1</td>
+</tr>
+<tr>
+<td>BLOCK5</td>
+<td port='b5'>-1</td>
+</tr>
+<tr>
+<td>BLOCK6</td>
+<td port='b6'>-1</td>
+</tr>
+<tr>
+<td>BLOCK7</td><td port='b7'>-1</td>
+</tr>
+<tr>
+<td>BLOCK8</td><td port='b8'>-1</td>
+</tr>
+<tr>
+<td>BLOCK9</td>
+<td port='b9'>-1</td>
+</tr>
+<tr>
+<td>BLOCK10</td>
+<td port='b10'>-1</td>
+</tr>
+<tr>
+<td>BLOCK11</td>
+<td port='b11'>-1</td>
+</tr>
+<tr>
+<td>BLOCK12</td>
+<td port='b12'>-1</td>
+</tr>
+<tr>
+<td>BLOCK13</td>
+<td port='b13'>-1</td>
+</tr>
+<tr>
+<td>BLOCK14</td>
+<td port='b14'>-1</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Permisos</td>
+<td>664</td>
+</tr>
+</table>
+>];
+inodo0:b0->bloque0
+bloque0 [ shape=plaintext label=<
+<table border='1' cellborder='1'>
+<tr>
+<td colspan="2" bgcolor="green">Bloque 0</td>
+</tr>
+<tr>
+<td> vZUUU</td>
+<td port='b0'>-1</td>
+</tr>
+<tr>
+<td>td port='b8'ÿÿÿÿ/td>
+</td>
+<td port='b1'>-1</td>
+</tr>
+<tr>
+<td>/td>
+</td>
+<td port='b2'>-1</td>
+</tr>
+<tr>
+<td>t label=<</td>
+<td port='b3'>-1</td>
+</tr>
+</table>
+>];
+inodo1 [ shape=plaintext label=<<table border='1' cellborder='1'>
+<tr>
+<td colspan="2" bgcolor="skyblue">Inodo 1</td>
+</tr>
+<tr>
+<td colspan="2" bgcolor="skyblue">Inodo 1</td>
+</tr>
+<tr>
+<td>UID</td>
+<td>1</td>
+</tr>
+<tr>
+<td>GID</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Size</td>
+<td>0</td>
+</tr>
+<tr>
+<td>ATime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>CTime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>Mtime</td>
+<td>Sun Jun 13 21:59:17 2021
+</td>
+</tr>
+<tr>
+<td>BLOCK0</td>
+<td port='b0'>1</td>
+</tr>
+<tr>
+<td>BLOCK1</td>
+<td port='b1'>-1</td>
+</tr>
+<tr>
+<td>BLOCK2</td>
+<td port='b2'>-1</td>
+</tr>
+<tr>
+<td>BLOCK3</td>
+<td port='b3'>-1</td>
+</tr>
+<tr>
+<td>BLOCK4</td>
+<td port='b4'>-1</td>
+</tr>
+<tr>
+<td>BLOCK5</td>
+<td port='b5'>-1</td>
+</tr>
+<tr>
+<td>BLOCK6</td>
+<td port='b6'>-1</td>
+</tr>
+<tr>
+<td>BLOCK7</td><td port='b7'>-1</td>
+</tr>
+<tr>
+<td>BLOCK8</td><td port='b8'>-1</td>
+</tr>
+<tr>
+<td>BLOCK9</td>
+<td port='b9'>-1</td>
+</tr>
+<tr>
+<td>BLOCK10</td>
+<td port='b10'>-1</td>
+</tr>
+<tr>
+<td>BLOCK11</td>
+<td port='b11'>-1</td>
+</tr>
+<tr>
+<td>BLOCK12</td>
+<td port='b12'>-1</td>
+</tr>
+<tr>
+<td>BLOCK13</td>
+<td port='b13'>-1</td>
+</tr>
+<tr>
+<td>BLOCK14</td>
+<td port='b14'>-1</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Permisos</td>
+<td>664</td>
+</tr>
+</table>
+>];
+inodo1:b0 -> bloque1
+bloque1 [ shape=plaintext label=<
+<table border='1' cellborder='1'>
+<tr>
+<td bgcolor="yellow">Bloque 1</td>
+</tr>
+<tr>
+<td>1,g,root
+1,u,root,root,123
+</td>
+</tr>
+</table>
+ >];
+}
