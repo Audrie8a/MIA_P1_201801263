@@ -52,6 +52,12 @@ string SplitRutaSinNombreArchivo(string path)
     return palabra + "/";
 }
 
+string SinComillas(string texto)
+{
+    texto.erase(0, 1);
+    texto.erase(texto.length() - 1, texto.length());
+    return texto;
+}
 //OBTIENE LA RUTA SIN EL NOMBRE DEL ARCHIVO
 string SplitRuta(string path)
 {
@@ -230,8 +236,14 @@ void Mkdisk()
                 }
                 VerificarPath(path);
                 transform(u.begin(), u.end(), u.begin(), ::tolower);
-
-                mkdisk(size, f, u, path);
+                if (size >= 0)
+                {
+                    mkdisk(size, f, u, path);
+                }
+                else
+                {
+                    cout << "Error, size negativo!" << endl;
+                }
             }
         }
     }
@@ -392,61 +404,68 @@ void Fdisk()
         {
             if (path != "" && name != "")
             {
-                if (VerificarExistencia(path))
+                if (size >= 0)
                 {
-                    if (u == "")
+                    if (VerificarExistencia(path))
                     {
-                        u = "k";
-                    }
-                    if (type == "")
-                    {
-                        type = "p";
-                    }
-                    if (f == "")
-                    {
-                        f = "w";
-                    }
-                    transform(f.begin(), f.end(), f.begin(), ::tolower);
-                    if (f == "bf")
-                    {
-                        f = "b";
-                    }
-                    else if (f == "ff")
-                    {
-                        f = "f";
-                    }
-                    else if (f == "wf")
-                    {
-                        f = "w";
-                    }
-                    transform(type.begin(), type.end(), type.begin(), ::tolower);
-                    transform(u.begin(), u.end(), u.begin(), ::tolower);
-                    name = ObtenerPaths(name);
-                    path = ObtenerPaths(path);
-                    if (operacion == "add")
-                    {
-                        fdisk(size, u, path, type, f, name, add, "", operacion);
-                    }
-                    else if (operacion == "delete")
-                    {
-                        transform(deleted.begin(), deleted.end(), deleted.begin(), ::tolower);
-                        fdisk(size, u, path, type, f, name, 0, deleted, operacion);
-                    }
-                    else
-                    {
-                        if (size != 0)
+                        if (u == "")
                         {
-                            fdisk(size, u, path, type, f, name, 0, "", operacion);
+                            u = "k";
+                        }
+                        if (type == "")
+                        {
+                            type = "p";
+                        }
+                        if (f == "")
+                        {
+                            f = "w";
+                        }
+                        transform(f.begin(), f.end(), f.begin(), ::tolower);
+                        if (f == "bf")
+                        {
+                            f = "b";
+                        }
+                        else if (f == "ff")
+                        {
+                            f = "f";
+                        }
+                        else if (f == "wf")
+                        {
+                            f = "w";
+                        }
+                        transform(type.begin(), type.end(), type.begin(), ::tolower);
+                        transform(u.begin(), u.end(), u.begin(), ::tolower);
+                        name = ObtenerPaths(name);
+                        path = ObtenerPaths(path);
+                        if (operacion == "add")
+                        {
+                            fdisk(size, u, path, type, f, name, add, "", operacion);
+                        }
+                        else if (operacion == "delete")
+                        {
+                            transform(deleted.begin(), deleted.end(), deleted.begin(), ::tolower);
+                            fdisk(size, u, path, type, f, name, 0, deleted, operacion);
                         }
                         else
                         {
-                            cout << "Error, no se ha encontrado el disco en el path dado" << endl;
+                            if (size != 0)
+                            {
+                                fdisk(size, u, path, type, f, name, 0, "", operacion);
+                            }
+                            else
+                            {
+                                cout << "Error, no se ha encontrado el disco en el path dado" << endl;
+                            }
                         }
+                    }
+                    else
+                    {
+                        cout << "Error, no se ha encontrado el disco en el path dado" << endl;
                     }
                 }
                 else
                 {
-                    cout << "Error, no se ha encontrado el disco en el path dado" << endl;
+                    cout << "Error, size es negativo!" << endl;
                 }
             }
             else
@@ -711,6 +730,154 @@ void Recovery()
 
 void Mkusr()
 {
+    string usr = "";
+    string pwd = "";
+    string grp = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+            if (cmd == "-usr")
+            {
+                indice++;
+                usr = CMD[indice];
+            }
+            else if (cmd == "-pwd")
+            {
+                indice++;
+                pwd = CMD[indice];
+            }
+            else if (cmd == "-grp")
+            {
+                indice++;
+                grp = CMD[indice];
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+            }
+            indice++;
+        }
+        if (usr != "" && pwd != "" && grp != "")
+        {
+            mkusr(usr, pwd, grp);
+        }
+        else
+        {
+            cout << "Error, falta id" << endl;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
+    }
+}
+
+void Mkgrp()
+{
+    string name = "";
+    string cmd = CMD[indice];
+    transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+    if (cmd == "-name")
+    {
+        indice++;
+        name = CMD[indice];
+    }
+
+    if (name != "")
+    {
+        //mkgrp(id);
+    }
+    else
+    {
+        cout << "Falta el atributo id" << endl;
+    }
+}
+
+void Mkfile()
+{
+    string path = "";
+    bool r = false;
+    int size = 0;
+    string cont = "";
+    try
+    {
+        int CMDsize = CMD.size();
+        while (indice < CMDsize)
+        {
+
+            string cmd = CMD[indice];
+            transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+            if (cmd == "-path")
+            {
+                indice++;
+                path = CMD[indice];
+            }
+            else if (cmd == "-cont")
+            {
+                indice++;
+                cont = CMD[indice];
+            }
+            else if (cmd == "-r")
+            {
+                indice++;
+                r = true;
+            }
+            else if (cmd == "-size")
+            {
+                indice++;
+                size = stoi(CMD[indice]);
+            }
+            else if (cmd[0] == '#')
+            {
+                //Comentario
+                //cout << "Comentario" << endl;
+                indice = (CMD.size() - 1);
+            }
+            else
+            {
+                cout << "Error, atributo no identificado para este comando" << endl;
+            }
+            indice++;
+        }
+        if (path != "")
+        {
+            if (path[0] == '"')
+            {
+                path = SinComillas(path);
+            }
+            if (cont[0] == '"')
+            {
+                cont = SinComillas(cont);
+            }
+            if (size >= 0)
+            {
+                mkfile(path,r,size,cont);
+            }
+            else
+            {
+                cout << "Error, size negativo!" << endl;
+            }
+        }
+        else
+        {
+            cout << "Error, falta id" << endl;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        cout << "Ha sucedido un error al obtener los datos para crear el disco" << endl;
+    }
 }
 
 void Rep()
@@ -911,15 +1078,22 @@ void Ejecutar(vector<string> vector)
     {
         pause();
         indice = 0;
-    }else if (cmd == "loss")
+    }
+    else if (cmd == "loss")
     {
         indice++;
         Loss();
         indice = 0;
-    }else if (cmd == "recovery")
+    }
+    else if (cmd == "recovery")
     {
         indice++;
         Recovery();
+        indice = 0;
+    }else if (cmd == "mkfile")
+    {
+        indice++;
+        Mkfile();
         indice = 0;
     }
     else if (cmd[0] == '#')
