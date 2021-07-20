@@ -1,0 +1,20 @@
+digraph G {
+    nodo [shape=plaintext label=<
+    <table>
+        <tr>
+            <td rowspan="4" color="red"><b>MBR</b></td>
+            <td rowspan="3" color="orange">Particion 1 25%</td>
+            <td colspan="4" color="blue"> Part2 30%</td>
+            <td rowspan="4" color ="blue">Particion 3</td>
+        </tr>
+        <tr>
+                <td color="green"><b>EBR</b></td>
+                <td color="green"><b>Particion</b></td>
+                <td color="green"><b>Libre</b></td>
+                <td color="green"><b>Particion2</b></td>
+        </tr>
+    </table>
+    >];
+    
+}
+   

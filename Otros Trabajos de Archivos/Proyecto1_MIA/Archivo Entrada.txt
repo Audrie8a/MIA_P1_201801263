@@ -1,0 +1,3 @@
+mkdisk -size =12 f= BF -u=m path="/home/audrie8a/Archivos/Disco2.dk"
+Comprobando :)
+
